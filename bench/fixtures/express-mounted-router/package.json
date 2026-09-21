@@ -1,0 +1,7 @@
+{
+  "name": "graftbench-mounted-router",
+  "private": true,
+  "type": "module",
+  "main": "main.js",
+  "dependencies": { "express": "5.2.1" }
+}

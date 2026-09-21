@@ -1,0 +1,9 @@
+{
+  "name": "@graft/proof-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "description": "The one place in GRAFT that knows both verdict vocabularies: GRAFT library-runner outcomes in, CUF aggregate verdict and proof root out, mapped back to GRAFT's VERIFIED / FAILED / NEEDS_REVIEW.",
+  "dependencies": {}
+}

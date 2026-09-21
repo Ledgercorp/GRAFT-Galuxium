@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.graft-work/
+organ-bank/
+*.tgz
+dist/
+
+.desktop-build/
+out/
+
+packages/licensing/.data/

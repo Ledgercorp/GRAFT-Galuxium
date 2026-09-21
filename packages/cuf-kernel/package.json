@@ -1,0 +1,9 @@
+{
+  "name": "@graft/cuf-kernel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "description": "The generic CUF proof kernel (verdict vocabulary, aggregation, evidence digests, proof root), vendored from CUF at the commit recorded in PROVENANCE.json. Independent of GRAFT.",
+  "dependencies": {}
+}

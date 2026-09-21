@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore a real GRAFT capability transplant: source discovery, architecture adaptation, and recorded HTTP verification. Your repositories stay local.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>GRAFT — Find it. Fit it. Prove it.</title>
+  <link rel="icon" href="./brand-icon.png"><link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#demo">Skip to interactive demo</a>
+  <header class="masthead"><a class="brand" href="./"><img src="./brand-icon.png" width="34" height="34" alt="">GRAFT</a><nav aria-label="Main"><a href="#demo">Explore the demo</a><a href="./docs.html">Technical documentation</a></nav><span class="local">Local-first by design</span></header>
+  <main>
+    <section class="hero" aria-labelledby="title"><div><p class="eyebrow">WORKING SOFTWARE IS A STARTING POINT</p><h1 id="title">Find it. Fit it.<br><span>Prove it.</span></h1><p class="lead">Reuse working software without starting over.</p><p class="intro">GRAFT finds working capabilities in existing projects, captures the behavior that makes them useful, adapts them to another architecture and verifies that the transplanted capability still works.</p><a class="button primary" href="#demo">Try Interactive Demo <span aria-hidden="true">↗</span></a></div><aside class="hero-note"><span class="eyebrow">THE SAMPLE TRANSPLANT</span><h2>Same behavior.<br>Different architecture.</h2><p>Follow email and password authentication from a CommonJS application into an ES module host.</p><div class="architecture"><code>CommonJS / node-res</code><span aria-hidden="true">↓</span><code>ESM / return-response</code></div><p class="small">A real local GRAFT run, recorded against bundled sample projects. No account or repository upload.</p></aside></section>
+    <section id="demo" class="workspace" aria-labelledby="demo-title" tabindex="-1">
+      <div class="workspace-heading"><div><p class="eyebrow">INTERACTIVE EVIDENCE EXPLORER</p><h2 id="demo-title">One capability. An inspectable path.</h2></div><span class="badge">Recorded local run</span></div>
+      <p class="notice"><strong>Real GRAFT evidence · hosted presentation / replay.</strong> Exploring these views does not execute code or run a new verification.</p>
+      <p id="load-status" role="status">Loading and checking recorded evidence…</p>
+      <div id="explorer" hidden>
+        <nav class="stages" aria-label="Evidence views"><button type="button" data-view="find" aria-current="step"><span>01</span> Find it</button><button type="button" data-view="fit"><span>02</span> Fit it</button><button type="button" data-view="prove"><span>03</span> Prove it</button><button type="button" data-view="evidence"><span>04</span> Provenance</button></nav>
+        <div id="panel" tabindex="-1"></div>
+      </div>
+      <noscript><p>JavaScript is needed for the evidence explorer. <a href="./docs.html">Read the technical documentation</a> or <a href="./evidence.json">download the recorded evidence</a>.</p></noscript>
+    </section>
+    <section class="closing" id="local-first"><div><p class="eyebrow">YOUR REPOSITORIES STAY LOCAL</p><h2>Built to work on your machine.</h2><p>GRAFT performs repository-sensitive discovery, adaptation and verification on your machine. This hosted experience uses safe sample projects so the workflow can be explored without uploading private source code.</p><a href="./docs.html#security">Security / Local-First Design ↗</a></div><div><h2>Continue with GRAFT</h2><p><a href="./docs.html">Technical Documentation ↗</a> · <a href="./evidence.json" download>Download recorded evidence ↧</a></p><p class="small">Public app download, public GitHub repository, and the full 2–5 minute demo are pending publication. They are not available from this preview.</p></div></section>
+  </main><footer>GRAFT <span>Find it. Fit it. Prove it.</span><a href="#title">Back to top ↑</a></footer>
+</body></html>

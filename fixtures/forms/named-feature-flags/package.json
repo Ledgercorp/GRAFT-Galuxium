@@ -1,0 +1,1 @@
+{ "name": "feature-flags", "version": "2.0.0", "main": "index.js", "license": "MIT", "description": "feature flags and toggles for everyone" }

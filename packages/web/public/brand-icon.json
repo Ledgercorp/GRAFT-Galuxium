@@ -1,0 +1,8 @@
+{
+  "note": "Derived from the canonical application icon. Do not edit by hand; run scripts/desktop/brand-logo.mjs.",
+  "master": "packages/desktop/assets/icon.png",
+  "masterSha256": "sha256:fd01859f8b574c5ae2c96acdca098141ff445f8c82502aa7db72f43131291c36",
+  "derived": "packages/web/public/brand-icon.png",
+  "derivedSha256": "sha256:81539c30927b90da75297e90a59e93fefe2ddc2d952eda1e0dfa8e3cfb289e10",
+  "size": 128
+}

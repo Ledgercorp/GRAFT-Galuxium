@@ -1,0 +1,845 @@
+{
+  "sha256": "f83fbc4cd6ada64e035f020ac6e8f1b0ca2c1fa62d6d1a4cc4098886bdc1c532",
+  "payload": {
+    "schemaVersion": 1,
+    "recordedAt": "2026-09-20T19:06:56.156Z",
+    "generator": {
+      "command": "node scripts/demo/judge-evidence.mjs",
+      "graftRevision": "8c1216e8bca2486202d90703fbec3dca531867d5"
+    },
+    "capability": {
+      "name": "Email & password authentication",
+      "slug": "authentication",
+      "behaviors": [
+        {
+          "id": "auth.register",
+          "text": "A visitor can create an account with an email address and a password."
+        },
+        {
+          "id": "auth.login",
+          "text": "A registered user can sign in with correct credentials, and is refused with incorrect ones."
+        },
+        {
+          "id": "auth.logout",
+          "text": "A signed-in user can sign out, after which their session no longer authenticates them."
+        },
+        {
+          "id": "auth.session",
+          "text": "A session persists across requests: the signed-in user can be read back from the session cookie."
+        },
+        {
+          "id": "auth.protect",
+          "text": "Protected routes reject unauthenticated requests before running any business logic."
+        }
+      ]
+    },
+    "source": {
+      "name": "old-saas-project",
+      "fixture": "fixtures/old-saas-project",
+      "shape": {
+        "moduleSystem": "cjs",
+        "handlerContract": "node-res",
+        "framework": "node-http",
+        "persistence": "module-state"
+      },
+      "revision": "b3c44b45559b136bfbcafd65c2d933687be93c6b",
+      "discovery": [
+        {
+          "id": "authentication",
+          "displayName": "Authentication",
+          "harvestable": true,
+          "summary": "session auth (register, login, logout, currentUser)"
+        },
+        {
+          "id": "file-uploads",
+          "displayName": "File uploads",
+          "harvestable": false,
+          "summary": "2 upload endpoints"
+        }
+      ],
+      "signals": [
+        {
+          "id": "login-route",
+          "evidence": "routes/auth.js"
+        },
+        {
+          "id": "register-route",
+          "evidence": "routes/auth.js"
+        },
+        {
+          "id": "password-hashing",
+          "evidence": "lib/users.js: scrypt"
+        },
+        {
+          "id": "session-management",
+          "evidence": "lib/sessions.js: sid cookie, HttpOnly=true"
+        },
+        {
+          "id": "authorization-guard",
+          "evidence": "routes/auth.js: requireAuth()"
+        }
+      ],
+      "verification": {
+        "verdict": "VERIFIED",
+        "startedAt": "2026-09-20T19:06:52.453Z",
+        "finishedAt": "2026-09-20T19:06:53.587Z",
+        "summary": {
+          "required": 6,
+          "passed": 6,
+          "failed": 0,
+          "inconclusive": 0
+        },
+        "envelopeDigest": "84902a1830b8392f219fd155b24277fdfbdaa7dc04b43eb3d1f7a35502cc979e",
+        "tests": [
+          {
+            "id": "auth.register.creates-account",
+            "description": "Registering with a fresh email creates an account and opens a session.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "setsCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.login.accepts-valid-credentials",
+            "description": "Correct credentials are accepted and produce a session cookie.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "setsCookie",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.HttpOnly",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.SameSite",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.value",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.login.rejects-invalid-credentials",
+            "description": "An incorrect password is rejected. This is the test that fails if hashing was reimplemented wrongly.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login-wrong",
+                "request": "POST /auth/login",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "notSetsCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.session.persists-across-requests",
+            "description": "The session cookie issued at login identifies the same user on a later request.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me",
+                "request": "GET /auth/me",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "body.user.email",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.logout.ends-session",
+            "description": "After logout the previously valid session no longer authenticates.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-before",
+                "request": "GET /auth/me",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "logout",
+                "request": "POST /auth/logout",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-after-with-old-cookie",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.protect.rejects-anonymous",
+            "description": "A protected route rejects a request carrying no session.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "anonymous",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "noSetCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.session.survives-restart",
+            "description": "A session issued before the application restarts is still honoured after it (durable session storage).",
+            "required": false,
+            "outcome": "failed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "restart",
+                "request": "restart",
+                "status": null,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "restart",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-after-restart",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": false,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "destination": {
+      "name": "new-startup",
+      "fixture": "fixtures/new-startup",
+      "shape": {
+        "moduleSystem": "esm",
+        "handlerContract": "return-response",
+        "framework": "node-http",
+        "persistence": "shared-store"
+      },
+      "baseRevision": "2aeb0402ef9479e5f8c4934ea69a65c808f524cb",
+      "revision": "4d3daaaee2be49a9fe69f00cf674d1c1cdd97674",
+      "entrypoint": "src/main.js",
+      "verification": {
+        "verdict": "VERIFIED",
+        "startedAt": "2026-09-20T19:06:55.223Z",
+        "finishedAt": "2026-09-20T19:06:56.156Z",
+        "summary": {
+          "required": 6,
+          "passed": 6,
+          "failed": 0,
+          "inconclusive": 0
+        },
+        "envelopeDigest": "29ffef40591ca817c6e4c3d62b9a2b33c4a98ff4e06240b8b58968ff70467fda",
+        "tests": [
+          {
+            "id": "auth.register.creates-account",
+            "description": "Registering with a fresh email creates an account and opens a session.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "setsCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.login.accepts-valid-credentials",
+            "description": "Correct credentials are accepted and produce a session cookie.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "setsCookie",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.HttpOnly",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.SameSite",
+                    "ok": true
+                  },
+                  {
+                    "name": "cookie.value",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.login.rejects-invalid-credentials",
+            "description": "An incorrect password is rejected. This is the test that fails if hashing was reimplemented wrongly.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login-wrong",
+                "request": "POST /auth/login",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "notSetsCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.session.persists-across-requests",
+            "description": "The session cookie issued at login identifies the same user on a later request.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me",
+                "request": "GET /auth/me",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "body.user.email",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.logout.ends-session",
+            "description": "After logout the previously valid session no longer authenticates.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-before",
+                "request": "GET /auth/me",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "logout",
+                "request": "POST /auth/logout",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-after-with-old-cookie",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.protect.rejects-anonymous",
+            "description": "A protected route rejects a request carrying no session.",
+            "required": true,
+            "outcome": "passed",
+            "steps": [
+              {
+                "name": "anonymous",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  },
+                  {
+                    "name": "noSetCookie",
+                    "ok": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "auth.session.survives-restart",
+            "description": "A session issued before the application restarts is still honoured after it (durable session storage).",
+            "required": false,
+            "outcome": "failed",
+            "steps": [
+              {
+                "name": "register",
+                "request": "POST /auth/register",
+                "status": 201,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "login",
+                "request": "POST /auth/login",
+                "status": 200,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "restart",
+                "request": "restart",
+                "status": null,
+                "ok": true,
+                "checks": [
+                  {
+                    "name": "restart",
+                    "ok": true
+                  }
+                ]
+              },
+              {
+                "name": "me-after-restart",
+                "request": "GET /auth/me",
+                "status": 401,
+                "ok": false,
+                "checks": [
+                  {
+                    "name": "status",
+                    "ok": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "plan": {
+      "status": "ready",
+      "adaptation": "Source is cjs/node-res; destination is esm/return-response. The capability is regenerated in the destination idiom, not copied.",
+      "checks": [
+        {
+          "id": "source.verification",
+          "status": "ok",
+          "title": "Verified in source",
+          "detail": "6 acceptance test(s) passed against the running source project (node-entrypoint, b3c44b45559b)."
+        },
+        {
+          "id": "architecture.profile",
+          "status": "ok",
+          "title": "Destination architecture supported",
+          "detail": "Destination is esm with return-response handlers; GRAFT can write a session-auth capability in that idiom (esm-return-response)."
+        },
+        {
+          "id": "architecture.framework",
+          "status": "ok",
+          "title": "HTTP layer identified",
+          "detail": "node-http (node:http server in src/main.js)"
+        },
+        {
+          "id": "architecture.entrypoint",
+          "status": "ok",
+          "title": "Entrypoint located",
+          "detail": "src/main.js will be edited to register the new routes."
+        },
+        {
+          "id": "data.persistence",
+          "status": "ok",
+          "title": "Persistence layer available",
+          "detail": "Capability will store users and sessions through src/store.js rather than standing up its own."
+        },
+        {
+          "id": "routes.collision",
+          "status": "warn",
+          "title": "Route collision detected",
+          "detail": "The destination already answers: POST /auth/login."
+        },
+        {
+          "id": "files.collision",
+          "status": "ok",
+          "title": "No file collisions",
+          "detail": "5 new files will be created."
+        },
+        {
+          "id": "data.existing-user-model",
+          "status": "ok",
+          "title": "No conflicting user model",
+          "detail": "The destination has no existing user or account model to reconcile."
+        },
+        {
+          "id": "dependencies.missing",
+          "status": "ok",
+          "title": "No new packages required",
+          "detail": "This capability uses only the Node standard library."
+        },
+        {
+          "id": "environment.missing",
+          "status": "ok",
+          "title": "Environment satisfied",
+          "detail": "Optional, will fall back to defaults: SESSION_TTL_SECONDS=86400, SESSION_SECRET=undefined."
+        }
+      ],
+      "conflictResolutionApproved": true,
+      "steps": [
+        {
+          "order": 1,
+          "kind": "create-files",
+          "description": "Write 5 new files under src/auth/"
+        },
+        {
+          "order": 2,
+          "kind": "resolve-conflicts",
+          "description": "Comment out 1 conflicting route registration(s) in src/main.js"
+        },
+        {
+          "order": 3,
+          "kind": "register-routes",
+          "description": "Import and call registerAuthRoutes() in src/main.js"
+        },
+        {
+          "order": 4,
+          "kind": "verify",
+          "description": "Run 7 acceptance tests against the destination"
+        }
+      ],
+      "files": [
+        {
+          "path": "src/auth/store-adapter.js",
+          "sha256": "7a547b80594dafa378d711b84109e2757d728726a1d922f7fcfdc3871970004d"
+        },
+        {
+          "path": "src/auth/passwords.js",
+          "sha256": "a0ba72ead9399aed46435721eb7669d7bbde5df65d8d708de8e85d286df4bf2a"
+        },
+        {
+          "path": "src/auth/sessions.js",
+          "sha256": "1d9c928ad89ccb01f2654683e225590b69eb246d2be8fff3c900a01916b7425a"
+        },
+        {
+          "path": "src/auth/guard.js",
+          "sha256": "c77b41b9bbe0217bc44d255ce2f2bd4cc2f21d03f06944203981395a1d3f1326"
+        },
+        {
+          "path": "src/auth/routes.js",
+          "sha256": "3fd0bd098f4fac95fa67c4277e164881d3d7b88149c0e304cd637068b2e4292c"
+        }
+      ]
+    },
+    "diff": "diff --git a/src/auth/guard.js b/src/auth/guard.js\nnew file mode 100644\nindex 0000000..de72033\n--- /dev/null\n+++ b/src/auth/guard.js\n@@ -0,0 +1,18 @@\n+import { COOKIE_NAME, getSession } from './sessions.js';\n+import { users } from './store-adapter.js';\n+\n+/**\n+ * Wraps a route handler so it only runs for an authenticated request.\n+ * Written for this application's handler contract: handlers receive ctx and\n+ * return { status, body }.\n+ */\n+export function requireAuth(handler) {\n+  return async (ctx) => {\n+    const sessionId = ctx.cookies?.[COOKIE_NAME];\n+    const session = sessionId ? getSession(sessionId) : null;\n+    if (!session) return { status: 401, body: { error: 'unauthenticated' } };\n+    const user = users.byId(session.userId);\n+    if (!user) return { status: 401, body: { error: 'unauthenticated' } };\n+    return handler({ ...ctx, session, user });\n+  };\n+}\ndiff --git a/src/auth/passwords.js b/src/auth/passwords.js\nnew file mode 100644\nindex 0000000..fa43575\n--- /dev/null\n+++ b/src/auth/passwords.js\n@@ -0,0 +1,19 @@\n+import crypto from 'node:crypto';\n+\n+// Parameters carried over from the harvested capability. Changing them would\n+// silently invalidate every password hash written by this build.\n+const KEY_LENGTH = 64;\n+const SALT_BYTES = 16;\n+\n+export function hashPassword(password, salt = crypto.randomBytes(SALT_BYTES).toString('hex')) {\n+  return { salt, passwordHash: crypto.scryptSync(password, salt, KEY_LENGTH).toString('hex') };\n+}\n+\n+export function verifyPassword(password, salt, expectedHash) {\n+  const { passwordHash } = hashPassword(password, salt);\n+  const actual = Buffer.from(passwordHash, 'hex');\n+  const expected = Buffer.from(expectedHash, 'hex');\n+  if (actual.length !== expected.length) return false;\n+  // Constant-time: a fast rejection would leak how much of the hash matched.\n+  return crypto.timingSafeEqual(actual, expected);\n+}\ndiff --git a/src/auth/routes.js b/src/auth/routes.js\nnew file mode 100644\nindex 0000000..bca5543\n--- /dev/null\n+++ b/src/auth/routes.js\n@@ -0,0 +1,54 @@\n+import crypto from 'node:crypto';\n+import { hashPassword, verifyPassword } from './passwords.js';\n+import { createSession, destroySession, sessionCookie, clearedCookie, COOKIE_NAME } from './sessions.js';\n+import { users } from './store-adapter.js';\n+import { requireAuth } from './guard.js';\n+\n+function publicUser(user) {\n+  return { id: user.id, email: user.email, createdAt: user.createdAt };\n+}\n+\n+function normaliseEmail(email) {\n+  return String(email ?? '').trim().toLowerCase();\n+}\n+\n+export function registerAuthRoutes(app) {\n+  app.post(\"/auth/register\", async (ctx) => {\n+    const email = normaliseEmail(ctx.body?.email);\n+    const password = ctx.body?.password;\n+    if (!email || !password) return { status: 400, body: { error: 'email_and_password_required' } };\n+    if (String(password).length < 8) return { status: 400, body: { error: 'password_too_short' } };\n+    if (users.byEmail(email)) return { status: 409, body: { error: 'email_already_registered' } };\n+\n+    const { salt, passwordHash } = hashPassword(String(password));\n+    const user = { id: crypto.randomUUID(), email, salt, passwordHash, createdAt: new Date().toISOString() };\n+    users.insert(user);\n+\n+    const sessionId = createSession(user.id);\n+    return { status: 201, body: { user: publicUser(user) }, headers: { 'set-cookie': sessionCookie(sessionId) } };\n+  });\n+\n+  app.post(\"/auth/login\", async (ctx) => {\n+    const email = normaliseEmail(ctx.body?.email);\n+    const user = users.byEmail(email);\n+    // An unknown email and a wrong password return the same thing, so this endpoint\n+    // cannot be used to discover which addresses are registered.\n+    if (!user || !verifyPassword(String(ctx.body?.password ?? ''), user.salt, user.passwordHash)) {\n+      return { status: 401, body: { error: 'invalid_credentials' } };\n+    }\n+    const sessionId = createSession(user.id);\n+    return { status: 200, body: { user: publicUser(user) }, headers: { 'set-cookie': sessionCookie(sessionId) } };\n+  });\n+\n+  app.post(\"/auth/logout\", async (ctx) => {\n+    const sessionId = ctx.cookies?.[COOKIE_NAME];\n+    if (sessionId) destroySession(sessionId);\n+    return { status: 200, body: { ok: true }, headers: { 'set-cookie': clearedCookie() } };\n+  });\n+\n+  app.get(\"/auth/me\", requireAuth(async (ctx) => ({\n+    status: 200,\n+    body: { user: publicUser(ctx.user) },\n+  })));\n+\n+}\ndiff --git a/src/auth/sessions.js b/src/auth/sessions.js\nnew file mode 100644\nindex 0000000..508b1b2\n--- /dev/null\n+++ b/src/auth/sessions.js\n@@ -0,0 +1,34 @@\n+import crypto from 'node:crypto';\n+import { sessions } from './store-adapter.js';\n+\n+export const COOKIE_NAME = \"sid\";\n+const TTL_SECONDS = Number(process.env.SESSION_TTL_SECONDS || 86400);\n+if (!Number.isInteger(TTL_SECONDS) || TTL_SECONDS < 1 || TTL_SECONDS > 31536000) {\n+  throw new Error('SESSION_TTL_SECONDS must be an integer between 1 and 31536000');\n+}\n+const ID_BYTES = 24;\n+\n+export function createSession(userId) {\n+  // Opaque random id. The cookie carries no claims, so it cannot be forged by editing it.\n+  const id = crypto.randomBytes(ID_BYTES).toString('hex');\n+  sessions.insert({ id, userId, expiresAt: Date.now() + TTL_SECONDS * 1000 });\n+  return id;\n+}\n+\n+export function getSession(id) {\n+  const record = sessions.byId(id);\n+  if (!record) return null;\n+  if (record.expiresAt < Date.now()) { sessions.remove(id); return null; }\n+  return record;\n+}\n+\n+export function destroySession(id) { sessions.remove(id); }\n+\n+export function sessionCookie(id) {\n+  return `${COOKIE_NAME}=${id}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${TTL_SECONDS}`;\n+}\n+\n+export function clearedCookie() {\n+  return `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;\n+}\n+\ndiff --git a/src/auth/store-adapter.js b/src/auth/store-adapter.js\nnew file mode 100644\nindex 0000000..baceeb5\n--- /dev/null\n+++ b/src/auth/store-adapter.js\n@@ -0,0 +1,15 @@\n+import { store } from \"../store.js\";\n+\n+// The capability needs to keep users and sessions somewhere. The destination already\n+// has a store, so it uses that rather than introducing a second source of truth.\n+export const users = {\n+  insert(user) { return store.insert('users', user.id, user); },\n+  byEmail(email) { return store.find('users', (u) => u.email === email); },\n+  byId(id) { return store.get('users', id); },\n+};\n+\n+export const sessions = {\n+  insert(record) { return store.insert('sessions', record.id, record); },\n+  byId(id) { return store.get('sessions', id); },\n+  remove(id) { return store.delete('sessions', id); },\n+};\ndiff --git a/src/main.js b/src/main.js\nindex 934a559..adeaa77 100644\n--- a/src/main.js\n+++ b/src/main.js\n@@ -1,11 +1,19 @@\n import http from 'node:http';\n import { App } from './router.js';\n import { registerHealthRoutes } from './routes/health.js';\n+import { registerAuthRoutes } from \"./auth/routes.js\";\n+\n \n export const app = new App();\n \n registerHealthRoutes(app);\n-app.post('/auth/login', async () => ({ status: 501, body: { error: 'auth_not_implemented' } }));\n+// [graft] replaced by the transplanted authentication capability:\n+//app.post('/auth/login', async () => ({ status: 501, body: { error: 'auth_not_implemented' } }));\n+\n+// >>> graft:authentication\n+registerAuthRoutes(app);\n+// <<< graft:authentication\n+\n \n export const server = http.createServer((req, res) => app.dispatch(req, res));"
+  }
+}

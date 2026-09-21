@@ -1,0 +1,97 @@
+name: Release checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: [20, 22, 24]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run release:check
+      - run: npm audit --omit=dev --audit-level=high
+
+  # Windows, two jobs that run in parallel so a failure is attributed cleanly and the artifact
+  # signal is not blocked behind the unit suites. Both must pass. Node 22 only (the shipped major).
+  windows-tests:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:package
+
+  # Builds the deterministic fixture and drives it end to end (real Electron, real DPAPI safeStorage,
+  # real git, paths with spaces and non-ASCII), then builds the UNSIGNED Windows release candidate,
+  # validates it and uploads it for a clean-PC test. Signing is intentionally absent.
+  windows-desktop:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Only two known install scripts run: Electron's, to fetch the pinned Electron binary, and
+      # electron-winstaller's, which selects the 7-Zip binary for this CPU (Squirrel needs 7z.exe).
+      - run: node node_modules/electron/install.js
+      - run: node script/select-7z-arch.js
+        working-directory: node_modules/electron-winstaller
+      - name: Package the deterministic fixture and drive it end to end on Windows
+        # The acceptance keeps its evidence under os.tmpdir(); point that at runner.temp so the
+        # upload step below can find it.
+        env:
+          TEMP: ${{ runner.temp }}
+          TMP: ${{ runner.temp }}
+        run: |
+          npm run desktop:package -- --fixture
+          npm run desktop:accept
+      - name: Build the unsigned Windows release candidate (Squirrel Setup.exe + ZIP)
+        run: npm run desktop:make
+      - name: Validate the Windows artifact
+        run: node scripts/desktop/inspect-windows-artifact.mjs
+      - name: Record the (expected) unsigned status of the installer
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem out/desktop/make/squirrel.windows/x64/*-Setup.exe | Select-Object -First 1
+          $sig = Get-AuthenticodeSignature $setup.FullName
+          Write-Host "Setup: $($setup.Name) $([math]::Round($setup.Length/1MB,1)) MiB  Authenticode: $($sig.Status)"
+          if ($sig.Status -ne 'NotSigned') { throw "Expected an unsigned release candidate, got $($sig.Status)" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: graft-windows-x64-unsigned-release-candidate
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            out/desktop/make/squirrel.windows/x64/*-Setup.exe
+            out/desktop/make/squirrel.windows/x64/RELEASES
+            out/desktop/make/squirrel.windows/x64/*.nupkg
+            out/desktop/make/zip/win32/x64/*.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-acceptance-evidence
+          path: |
+            ${{ runner.temp }}/**/graft-desktop-acceptance-*/*.json
+            ${{ runner.temp }}/**/graft-desktop-acceptance-*/*.log
+          if-no-files-found: ignore

@@ -1,0 +1,13 @@
+{
+  "provider": "graft-stripe-managed-payments",
+  "storeId": null,
+  "productId": null,
+  "variantIds": [],
+  "licenseApiBase": null,
+  "purchaseUrl": null,
+  "downloadUrl": null,
+  "offlineDays": 30,
+  "testBuild": false,
+  "inviteOnly": false,
+  "supportEmail": null
+}

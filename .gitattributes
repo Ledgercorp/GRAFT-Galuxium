@@ -1,0 +1,14 @@
+/HANDOFF.md export-ignore
+/docs/GALUXIUM-AUDIT.md export-ignore
+/docs/GALUXIUM-PUBLICATION-AUDIT.md export-ignore
+/docs/commercial-beta-readiness-0.1-discovery.md export-ignore
+/docs/commercial-beta-readiness-0.1/ export-ignore
+/docs/demo/ export-ignore
+/docs/evidence/ export-ignore
+/docs/library-host-adaptation-0.1b/ export-ignore
+/docs/*checkpoint*.txt export-ignore
+/docs/real-multicapability-composition-0.1/ export-ignore
+/packages/desktop/config/product.private-beta.json export-ignore
+/packages/licensing/DEPLOY.md export-ignore
+/packages/licensing/fly.toml export-ignore
+/scripts/private-beta.mjs export-ignore

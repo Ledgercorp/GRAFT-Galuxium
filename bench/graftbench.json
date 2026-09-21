@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "GRAFTBench authentication compatibility",
+  "capability": "authentication",
+  "acceptanceSuite": "harvested-required-http-tests",
+  "donors": {
+    "cjs-node-http": { "fixture": "fixtures/old-saas-project" },
+    "esm-return-response": { "fixture": "fixtures/new-startup", "deriveFrom": "cjs-node-http" },
+    "esm-express": { "fixture": "fixtures/express-app", "deriveFrom": "cjs-node-http" }
+  },
+  "recipients": {
+    "esm-return-response": { "fixture": "fixtures/new-startup" },
+    "esm-express": { "fixture": "fixtures/express-app" },
+    "cjs-node-http": { "fixture": "fixtures/old-saas-project" },
+    "express-mounted-router": { "fixture": "bench/fixtures/express-mounted-router" }
+  },
+  "scenarios": [
+    { "id": "cjs-to-return", "donor": "cjs-node-http", "recipient": "esm-return-response", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "cjs-to-express", "donor": "cjs-node-http", "recipient": "esm-express", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "return-to-return", "donor": "esm-return-response", "recipient": "esm-return-response", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "return-to-express", "donor": "esm-return-response", "recipient": "esm-express", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "express-to-return", "donor": "esm-express", "recipient": "esm-return-response", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "express-to-express", "donor": "esm-express", "recipient": "esm-express", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "VERIFIED", "resolveConflicts": true },
+    { "id": "unsupported-cjs-recipient", "donor": "cjs-node-http", "recipient": "cjs-node-http", "expectedCompatibility": "refused", "expectedTransplant": "REFUSED", "reason": "architecture.profile" },
+    { "id": "unsupported-mounted-router", "donor": "cjs-node-http", "recipient": "express-mounted-router", "expectedCompatibility": "refused", "expectedTransplant": "REFUSED", "reason": "architecture.profile" },
+    { "id": "unapproved-route-conflict", "donor": "cjs-node-http", "recipient": "esm-return-response", "expectedCompatibility": "conditionally-supported", "expectedTransplant": "REFUSED", "resolveConflicts": false, "reason": "routes.collision" }
+  ],
+  "mutationScenario": "cjs-to-return",
+  "mutations": [
+    { "id": "broken-password-validation", "file": "src/auth/passwords.js", "from": "export function verifyPassword(password, salt, expectedHash) {", "to": "export function verifyPassword(password, salt, expectedHash) {\n  return true;", "expectedVerdict": "FAILED", "acceptanceTest": "auth.login.rejects-invalid-credentials" },
+    { "id": "missing-authorization", "file": "src/auth/guard.js", "from": "if (!session) return", "to": "if (false) return", "expectedVerdict": "FAILED", "acceptanceTest": "auth.protect.rejects-anonymous" },
+    { "id": "session-persistence", "file": "src/auth/sessions.js", "from": "export function getSession(id) {", "to": "export function getSession(id) {\n  return null;", "expectedVerdict": "FAILED", "acceptanceTest": "auth.session.persists-across-requests" },
+    { "id": "logout-invalidation", "file": "src/auth/sessions.js", "from": "export function destroySession(id) { sessions.remove(id); }", "to": "export function destroySession(id) { /* deliberately leak session */ }", "expectedVerdict": "FAILED", "acceptanceTest": "auth.logout.ends-session" },
+    { "id": "cookie-mismatch", "file": "src/auth/sessions.js", "from": "export const COOKIE_NAME = \"", "to": "export const COOKIE_NAME = \"broken_", "expectedVerdict": "FAILED", "acceptanceTest": "auth.register.creates-account" },
+    { "id": "route-conflict", "file": "src/main.js", "from": "registerAuthRoutes(app);", "to": "app.post('/auth/login', async () => ({ status: 500, body: { error: 'route_conflict' } }));\nregisterAuthRoutes(app);", "expectedVerdict": "FAILED", "acceptanceTest": "auth.login.accepts-valid-credentials" },
+    { "id": "environment-mismatch", "file": "src/auth/routes.js", "from": "import crypto from 'node:crypto';", "to": "import crypto from 'node:crypto';\nif (!process.env.GRAFTBENCH_REQUIRED) throw new Error('Missing required environment');", "expectedVerdict": "NEEDS_REVIEW" },
+    { "id": "storage-mismatch", "file": "src/auth/store-adapter.js", "from": "byEmail(email) { return store.find('users', (u) => u.email === email); }", "to": "byEmail(email) { return store.find('wrong_users', (u) => u.email === email); }", "expectedVerdict": "FAILED", "acceptanceTest": "auth.login.accepts-valid-credentials" },
+    { "id": "runtime-failure", "file": "src/auth/routes.js", "from": "import crypto from 'node:crypto';", "to": "import crypto from 'node:crypto';\nthrow new Error('GRAFTBench deliberate runtime failure');", "expectedVerdict": "NEEDS_REVIEW" }
+  ]
+}

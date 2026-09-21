@@ -1,0 +1,77 @@
+{
+  "name": "graft",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "description": "GRAFT - harvest working capabilities from old projects and transplant them into new ones.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "node --test packages/cuf-kernel/test/*.test.js packages/proof-adapter/test/*.test.js packages/core/test/*.test.js packages/cli/test/*.test.js packages/web/test/*.test.js packages/desktop/test/*.test.js packages/licensing/test/*.test.js",
+    "graft": "node packages/cli/src/index.js",
+    "demo": "node packages/cli/src/index.js demo",
+    "check": "node scripts/check.mjs",
+    "test:package": "node scripts/package-smoke.mjs",
+    "release:check": "npm run check && npm test && npm run test:package && npm run bench",
+    "start": "node packages/web/src/server.js",
+    "test:web": "node --test packages/web/test/*.test.js",
+    "test:desktop": "node --test packages/desktop/test/*.test.js",
+    "test:licensing": "node --test packages/licensing/test/*.test.js",
+    "licensing:serve": "node packages/licensing/src/cli.js",
+    "licensing:setup": "node packages/licensing/src/setup-stripe.js",
+    "desktop:prepare": "node scripts/desktop/prepare.mjs",
+    "desktop:package": "node scripts/desktop/build.mjs",
+    "desktop:make": "node scripts/desktop/build.mjs --make",
+    "desktop:accept": "node scripts/desktop/acceptance.mjs",
+    "desktop:demo": "node scripts/desktop/real-demo.mjs",
+    "bench": "node bench/run.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "7.11.2",
+    "@electron-forge/maker-dmg": "7.11.2",
+    "@electron-forge/maker-squirrel": "7.11.2",
+    "@electron-forge/maker-zip": "7.11.2",
+    "@electron-forge/plugin-fuses": "7.11.2",
+    "@electron/fuses": "1.8.0",
+    "electron": "44.3.0",
+    "express": "5.2.1"
+  },
+  "bin": {
+    "graft": "packages/cli/src/index.js"
+  },
+  "files": [
+    "packages/core/src",
+    "packages/core/package.json",
+    "packages/cli/src",
+    "packages/cli/package.json",
+    "packages/proof-adapter/src",
+    "packages/proof-adapter/package.json",
+    "packages/cuf-kernel/src",
+    "packages/cuf-kernel/package.json",
+    "packages/cuf-kernel/PROVENANCE.json",
+    "fixtures/old-saas-project",
+    "fixtures/new-startup",
+    "README.md",
+    "docs",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "HANDOFF.md",
+    "RELEASE.md",
+    "packages/web/src",
+    "packages/web/public",
+    "packages/web/package.json"
+  ],
+  "dependencies": {
+    "acorn": "8.18.0"
+  },
+  "main": "packages/desktop/src/main.js",
+  "author": "GRAFT",
+  "overrides": {
+    "tar": "7.5.22",
+    "tmp": "0.2.7"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "sourceRepository": "CUF (~/Developer/CUF, git)",
+  "sourceBranch": "main",
+  "sourceCommit": "b18f70096b3e08899ff0a25303630038ac965b76",
+  "copyMethod": "byte copy of the locally compiled ESM output (tsc, TypeScript 6.0.3, from the committed .ts sources at the source commit), with exactly one textual transformation: the bare workspace specifier \"@cuf/contracts\" is rewritten to the sibling file \"./contracts.js\" so the modules resolve without CUF's npm workspace. Nothing else is changed. The JS is compiler output, not byte-identical to the TypeScript source; the source identity is the git blob id of each .ts file at the source commit.",
+  "transformation": {
+    "from": "\"@cuf/contracts\"",
+    "to": "\"./contracts.js\""
+  },
+  "files": [
+    {
+      "vendored": "packages/cuf-kernel/src/contracts.js",
+      "sourcePath": "packages/contracts/src/index.ts",
+      "sourceBlob": "ded34b5bad6d58f51bc8cda29772902b0602bfb2",
+      "compiledFrom": "packages/contracts/dist/index.js",
+      "compiledSha256": "6f8a214cfccae637bef803bddf5beb7e40f3df983884763faa7a1a3d0efe01d9",
+      "vendoredSha256": "6f8a214cfccae637bef803bddf5beb7e40f3df983884763faa7a1a3d0efe01d9",
+      "transformed": false,
+      "bytes": 979
+    },
+    {
+      "vendored": "packages/cuf-kernel/src/evidence.js",
+      "sourcePath": "packages/evidence/src/index.ts",
+      "sourceBlob": "6e3b41641fd231767b924f3f4261dcf16b5dd5fb",
+      "compiledFrom": "packages/evidence/dist/index.js",
+      "compiledSha256": "87e16eaeace58c9de0a7b5cce6eff21e23050a5bcebdf5ced84317f8b203b1b2",
+      "vendoredSha256": "8a3978ed50fe98e3b8f8a98f438da0a4238fc5d606ce5ad3718710b1116f0d89",
+      "transformed": true,
+      "bytes": 4013
+    },
+    {
+      "vendored": "packages/cuf-kernel/src/capture.js",
+      "sourcePath": "packages/evidence/src/capture.ts",
+      "sourceBlob": "858f46c8850d82b448f76a52fa6fa6d3d3303ef7",
+      "compiledFrom": "packages/evidence/dist/capture.js",
+      "compiledSha256": "058b14853fc0e6df48ae89307ae24efb4e6f1ab6c5863f875dea891a7ccf1e9c",
+      "vendoredSha256": "06ab8c85fb486cac50765e0a6935f13e7a1aedf87eb3789367a767eabdb5da71",
+      "transformed": true,
+      "bytes": 6025
+    },
+    {
+      "vendored": "packages/cuf-kernel/src/cleanup.js",
+      "sourcePath": "packages/evidence/src/cleanup.ts",
+      "sourceBlob": "fb27c735f20e5d080cb90d94e182f407fa1a9a21",
+      "compiledFrom": "packages/evidence/dist/cleanup.js",
+      "compiledSha256": "91be52e52c6b4acbea866a45644b1db35f74c3b8bc76e2a1e6597d0ef92178ad",
+      "vendoredSha256": "91be52e52c6b4acbea866a45644b1db35f74c3b8bc76e2a1e6597d0ef92178ad",
+      "transformed": false,
+      "bytes": 5273
+    },
+    {
+      "vendored": "packages/cuf-kernel/src/observation.js",
+      "sourcePath": "packages/evidence/src/observation.ts",
+      "sourceBlob": "197ac6e7884134d779c3704ef1ba791188dd261e",
+      "compiledFrom": "packages/evidence/dist/observation.js",
+      "compiledSha256": "a88977ce8d8497e8d288821da3f65ffb93bfec9dc234610d971ffff5ad60e3c9",
+      "vendoredSha256": "a88977ce8d8497e8d288821da3f65ffb93bfec9dc234610d971ffff5ad60e3c9",
+      "transformed": false,
+      "bytes": 5964
+    }
+  ]
+}

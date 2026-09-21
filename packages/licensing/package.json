@@ -1,0 +1,11 @@
+{
+  "name": "@graft/licensing",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "description": "GRAFT licensing backend: Stripe Managed Payments (Merchant of Record) checkout, webhook-verified license issuance, activation, validation and download entitlement.",
+  "main": "src/server.js",
+  "bin": {
+    "graft-licensing": "src/cli.js"
+  }
+}

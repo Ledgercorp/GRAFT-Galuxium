@@ -1,0 +1,12 @@
+export { fingerprintProject, serialisableFingerprint } from './analyze/fingerprint.js';
+export { discoverCapabilities, harvest } from './harvest/index.js';
+export { MANIFEST_VERSION, SECTIONS, CAPABILITY_CATEGORIES, validateManifest, findSecretLeaks } from './manifest/schema.js';
+export { writeManifest, readManifest, listOrganBank, readOrganEngine } from './manifest/io.js';
+export * as engine from './engine/index.js';
+export { GRAFT_ENGINE_VERSION, buildEngineArtifacts, validateEngineArtifacts, analyzeForHost } from './engine/index.js';
+export { createTransplantPlan, analyzeCompatibility } from './plan/index.js';
+export { emitSessionAuth, planEntrypointEdit, profileFor, SUPPORTED_PROFILES } from './emit/session-auth.js';
+export { applyTransplant, checkPreconditions, inspectRepo } from './apply/index.js';
+export { verifyCapability, decideVerdict, VERIFIED, FAILED, NEEDS_REVIEW } from './verify/index.js';
+export { CAPABILITY_CONTRACT_VERSION, canonicalSerialize, toCapabilityContract, validateCapabilityContract } from './capability/contract.js';
+export { inspectLocalCapability, localCompatibilityHistory } from './capability/knowledge.js';
