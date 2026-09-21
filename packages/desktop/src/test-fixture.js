@@ -4,9 +4,10 @@ import path from 'node:path';
 import { LicenseUnavailable } from './license-provider.js';
 let home;
 let chosenCount = 0;
-export function configure(app) {
-  if (!process.env.GRAFT_FIXTURE_HOME || !path.isAbsolute(process.env.GRAFT_FIXTURE_HOME)) throw new Error('The test candidate needs an explicit isolated fixture home.');
-  home = process.env.GRAFT_FIXTURE_HOME;
+export function configure(app, { judge = false } = {}) {
+  const configuredHome = process.env.GRAFT_FIXTURE_HOME || (judge ? path.join(app.getPath('userData'), 'judge-home') : null);
+  if (!configuredHome || !path.isAbsolute(configuredHome)) throw new Error('The test candidate needs an explicit isolated fixture home.');
+  home = configuredHome;
   fs.mkdirSync(home, { recursive: true, mode: 0o700 });
   app.setPath('userData', path.join(home, 'app-data'));
   process.env.GRAFT_HOME = path.join(home, 'graft-state');

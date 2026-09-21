@@ -10,12 +10,14 @@ import { spawn, execFileSync } from 'node:child_process';
 import { describePlatform } from '../../packages/desktop/src/platform.js';
 
 const host = describePlatform();
-const APP_DIR = path.resolve(`out/fixture/GRAFT Fixture-${host.platform}-${host.arch}`);
-const APP = host.windows ? APP_DIR : path.join(APP_DIR, 'GRAFT Fixture.app');
-const EXE = host.windows ? path.join(APP_DIR, 'GRAFT Fixture.exe') : path.join(APP, 'Contents/MacOS/GRAFT Fixture');
+const judge = process.argv.includes('--judge');
+const productName = judge ? 'GRAFT Galuxium' : 'GRAFT Fixture';
+const APP_DIR = path.resolve(`out/${judge ? 'judge' : 'fixture'}/${productName}-${host.platform}-${host.arch}`);
+const APP = host.windows ? APP_DIR : path.join(APP_DIR, `${productName}.app`);
+const EXE = host.windows ? path.join(APP_DIR, `${productName}.exe`) : path.join(APP, `Contents/MacOS/${productName}`);
 const RESOURCES = host.windows ? path.join(APP_DIR, 'resources') : path.join(APP, 'Contents/Resources');
 const RUNTIME_NODE = path.join(RESOURCES, 'runtime', ...host.nodeExecutable);
-const BUNDLE_ID = 'com.leftsock.graft.fixture';
+const BUNDLE_ID = judge ? 'com.leftsock.graft.galuxium' : 'com.leftsock.graft.fixture';
 const KEY = 'GRAFT-FIXTURE-VALID';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
@@ -215,7 +217,7 @@ async function reopen(home, label, { offline = false, port } = {}) {
 }
 
 async function main() {
-  if (!fs.existsSync(EXE)) throw new Error('Build the fixture first: npm run desktop:package -- --fixture');
+  if (!fs.existsSync(EXE)) throw new Error(`Build the ${judge ? 'judge candidate' : 'fixture'} first: npm run desktop:package -- --${judge ? 'judge' : 'fixture'}`);
   const { home, trace } = workspace();
   const source = path.join(home, REPOS, 'source');
   const destination = path.join(home, REPOS, 'destination');
@@ -244,23 +246,26 @@ async function main() {
       && quit?.enabled === true, startup.menu.map((m) => m.label).join(' | '));
 
     const origin = startup.origin;
-    const refused = await fetch(`${origin}/api/state`, { headers: { 'x-graft-token': await token(origin) } });
-    report('the workspace API refuses every operation before activation', refused.status === 402, `HTTP ${refused.status}`);
+    const initial = await fetch(`${origin}/api/state`, { headers: { 'x-graft-token': await token(origin) } });
+    report(judge ? 'the judge build grants local demo access without activation' : 'the workspace API refuses every operation before activation',
+      initial.status === (judge ? 200 : 402), `HTTP ${initial.status}`);
 
     // The purchase call-to-action follows the build's configuration only: the fixture carries no
     // purchase URL, so Buy is disabled and its copy hidden, and the IPC refuses rather than opening anything.
-    const purchase = await cdpEvaluate(9333, 'license-ui',
+    const purchase = judge ? null : await cdpEvaluate(9333, 'license-ui',
       `window.graftDesktop.version().then((v) => window.graftDesktop.buy().then(() => ({ opened: true }), (e) => ({ version: v, buyDisabled: document.querySelector('#buy').disabled, buyHidden: document.querySelector('#buy').hidden, copyHidden: document.querySelector('#purchase').hidden, invite: document.querySelector('#invite').hidden ? null : document.querySelector('#invite').textContent, introHidden: document.querySelector('#intro').hidden, status: document.querySelector('#status').textContent, refused: e.message })))`);
-    report('Buy GRAFT is enabled only when the build carries a trusted purchase URL (none in the fixture)',
-      purchase?.version?.purchaseEnabled === false && purchase?.buyDisabled === true && purchase?.copyHidden === true && purchase?.refused === 'Purchasing is not available in this build.', JSON.stringify(purchase));
-    report('an invite-only build shows the invitation copy, hides Buy GRAFT and the purchase paragraph, and never mentions payment',
-      purchase?.version?.inviteOnly === true && purchase?.buyHidden === true && purchase?.introHidden === true && purchase?.invite === 'Private beta access is invite-only. Enter the license key from your invitation email.' && purchase?.status === 'Enter the license key from your invitation email.', JSON.stringify(purchase));
+    if (!judge) {
+      report('Buy GRAFT is enabled only when the build carries a trusted purchase URL (none in the fixture)',
+        purchase?.version?.purchaseEnabled === false && purchase?.buyDisabled === true && purchase?.copyHidden === true && purchase?.refused === 'Purchasing is not available in this build.', JSON.stringify(purchase));
+      report('an invite-only build shows the invitation copy, hides Buy GRAFT and the purchase paragraph, and never mentions payment',
+        purchase?.version?.inviteOnly === true && purchase?.buyHidden === true && purchase?.introHidden === true && purchase?.invite === 'Private beta access is invite-only. Enter the license key from your invitation email.' && purchase?.status === 'Enter the license key from your invitation email.', JSON.stringify(purchase));
+    }
 
-    const activation = await cdpEvaluate(9333, 'license-ui',
+    const activation = judge ? await cdpEvaluate(9333, '127.0.0.1', 'window.graftDesktop.licenseStatus()') : await cdpEvaluate(9333, 'license-ui',
       `window.graftDesktop.activate(${JSON.stringify(KEY)}).then((v) => JSON.parse(JSON.stringify(v)), (e) => ({ error: e.message }))`);
     if (activation?.error?.includes('could not be saved')) throw new Error(
       `Activation storage was denied: ${activation.error}\nThe fixture build keeps its licence in a build-stamped file under the fixture home, so this should not happen after a rebuild; inspect ${home}.`);
-    report('activation succeeds through the real renderer, preload and IPC path', activation?.allowed === true, activation?.message);
+    report(judge ? 'the judge build starts with its bounded local demo entitlement' : 'activation succeeds through the real renderer, preload and IPC path', activation?.allowed === true, activation?.message);
     // Harness only: on this machine the packaged workspace renderer sometimes answers no DevTools
     // evaluation for a while after the licence page navigates (measured 8 s to well over 200 s,
     // with the product's own HTTP server serving the whole time). Wait for it in short bounded
@@ -1021,7 +1026,7 @@ console.log(JSON.stringify({ enabled: on.isEnabled('Graft.enabled'), disabled: o
 
     await reopen(home, 'reopen after quit', { port: 9334 });
     await reopen(home, 'reopen with the licence service unreachable', { offline: true, port: 9335 });
-    await privateBetaLifecycle();
+    if (!judge) await privateBetaLifecycle();
   } finally {
     if (running(app.pid)) try { process.kill(app.pid, 9); } catch { /* already gone */ }
     if (app.log.length) fs.writeFileSync(path.join(home, 'app.log'), app.log.join(''));

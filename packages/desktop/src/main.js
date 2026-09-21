@@ -22,7 +22,7 @@ const host = describePlatform();
 process.env.GRAFT_HOME = path.join(os.homedir(), '.graft');
 if (config.testBuild) {
   fixture = await import('./test-fixture.js');
-  fixture.configure(app);
+  fixture.configure(app, { judge: config.judgeBuild === true });
 }
 app.enableSandbox();
 // A Squirrel.Windows install/update/uninstall launch only does shortcut housekeeping and exits.
@@ -56,6 +56,9 @@ else {
       store: fixture ? fixture.store(path.join(app.getPath('userData'), 'licensing'), { build: `fixture:${config.fixtureBuildId || app.getVersion()}` })
         : encryptedLicenseStore(path.join(app.getPath('userData'), 'licensing'), safeStorage), config, installationName: host.installationName });
     await licensing.initialize();
+    // The separately named Galuxium demo has no live entitlement or operator credential.
+    // Its local deterministic provider grants access only inside this judge-demo bundle.
+    if (config.judgeBuild === true && !licensing.canUse()) await licensing.activate('GRAFT-FIXTURE-VALID');
     dashboard = await startDashboard({ port: 0, authorize: () => licensing.canUse() });
     session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
@@ -149,7 +152,7 @@ else {
       savedPaths.add(real);
       return real;
     });
-    app.setAboutPanelOptions({ applicationName: 'GRAFT', applicationVersion: app.getVersion(), version: config.testBuild ? 'Deterministic test candidate' : 'Desktop distribution candidate', copyright: 'GRAFT' });
+    app.setAboutPanelOptions({ applicationName: 'GRAFT', applicationVersion: app.getVersion(), version: config.judgeBuild ? 'Galuxium judge demo' : config.testBuild ? 'Deterministic test candidate' : 'Desktop distribution candidate', copyright: 'GRAFT' });
     Menu.setApplicationMenu(Menu.buildFromTemplate(applicationMenu(host, {
       license: licensePage, downloadEnabled: Boolean(safeExternalUrl(config.downloadUrl)), download: () => shell.openExternal(safeExternalUrl(config.downloadUrl)) })));
     await (licensing.canUse() ? workspace() : licensePage());

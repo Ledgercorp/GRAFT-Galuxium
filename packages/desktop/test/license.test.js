@@ -282,8 +282,9 @@ test('background revalidation: a mid-body network failure keeps the cached activ
 
 // Generalization Hardening 0.1: the fixture build keeps its (non-secret) licence in a
 // build-stamped plain file, so rebuilding the fixture never strands a keychain record.
-// Production builds never import the fixture module at all.
-test('the fixture licence store is bound to the fixture build and unreachable from a production build', async () => {
+// Production builds never import the fixture module. The separately named judge demo uses it
+// deliberately, with an isolated local home and no live entitlement or operator credential.
+test('the fixture licence store is build-bound; only fixture and judge-demo builds can reach it', async () => {
   const fs = await import('node:fs'); const os = await import('node:os'); const path = await import('node:path');
   const { store } = await import('../src/test-fixture.js');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'graft-fixture-licence-'));
@@ -314,7 +315,10 @@ test('the fixture licence store is bound to the fixture build and unreachable fr
   assert.match(main, /: encryptedLicenseStore\(path\.join\(app\.getPath\('userData'\), 'licensing'\), safeStorage\)/);
   assert.equal(/fixture\.store/.test(main.split('store: fixture ? fixture.store(')[0]), false, 'no other path reaches the fixture store');
   const build = fs.readFileSync(new URL('../../../scripts/desktop/build.mjs', import.meta.url), 'utf8');
-  assert.match(build, /\(fixture \|\| path\.basename\(file\) !== 'test-fixture\.js'\)/, 'test-fixture.js is copied only into fixture builds');
+  assert.match(build, /\(localDemo \|\| path\.basename\(file\) !== 'test-fixture\.js'\)/, 'test-fixture.js is copied only into fixture and judge-demo builds');
+  assert.match(build, /!namedProductConfig\(file\)/, 'named operational product profiles never enter an artifact');
+  assert.match(build, /provider: 'galuxium-judge-demo'/);
+  assert.match(main, /config\.judgeBuild === true && !licensing\.canUse\(\)/, 'judge access is explicit and bounded to its named build');
   const product = JSON.parse(fs.readFileSync(new URL('../config/product.json', import.meta.url), 'utf8'));
   assert.notEqual(product.testBuild, true, 'the committed product configuration is not a test build');
 });

@@ -9,15 +9,16 @@ const iconBase = process.env.GRAFT_ICON || path.join(__dirname, 'packages/deskto
 for (const ext of ['.icns', '.ico']) if (!fs.existsSync(iconBase + ext)) throw new Error(`Application icon not found: ${iconBase}${ext}`);
 const signing = process.env.GRAFT_SIGN === '1';
 const fixture = process.env.GRAFT_BUILD_FIXTURE === '1';
-if (signing && fixture) throw new Error('Never sign a deterministic licensing fixture for distribution.');
+const judge = process.env.GRAFT_BUILD_JUDGE === '1';
+if (signing && (fixture || judge)) throw new Error('Never sign a deterministic fixture or judge-demo build for distribution.');
 if (signing && process.platform === 'darwin' && (!process.env.APPLE_SIGN_IDENTITY || !process.env.APPLE_ID || !process.env.APPLE_APP_SPECIFIC_PASSWORD || !process.env.APPLE_TEAM_ID)) throw new Error('Signing and notarization require externally supplied Apple credentials.');
 if (signing && process.platform === 'win32') throw new Error('Windows code signing is not configured; build the unsigned release candidate without GRAFT_SIGN.');
-const productName = fixture ? 'GRAFT Fixture' : 'GRAFT';
+const productName = judge ? 'GRAFT Galuxium' : fixture ? 'GRAFT Fixture' : 'GRAFT';
 const version = require('./package.json').version;
 module.exports = {
   packagerConfig: {
     name: productName, executableName: productName,
-    appBundleId: fixture ? 'com.leftsock.graft.fixture' : 'com.leftsock.graft',
+    appBundleId: judge ? 'com.leftsock.graft.galuxium' : fixture ? 'com.leftsock.graft.fixture' : 'com.leftsock.graft',
     appCategoryType: 'public.app-category.developer-tools', asar: true, prune: false,
     extraResource: [path.join(__dirname, '.desktop-build/runtime'), path.join(__dirname, 'node_modules/electron/LICENSE')],
     // Development signatures repair the upstream Electron signature after renaming/fuse changes.
@@ -37,7 +38,7 @@ module.exports = {
     // Windows: a one-click Squirrel Setup.exe (no MSI) + ZIP. Squirrel installs per-user under
     // %LocalAppData%\\GRAFT, needs no administrator rights, and registers an uninstaller.
     { name: '@electron-forge/maker-squirrel', platforms: ['win32'], config: {
-      name: fixture ? 'GRAFTFixture' : 'GRAFT', title: productName, authors: 'GRAFT', description: 'GRAFT desktop',
+      name: judge ? 'GRAFTGaluxium' : fixture ? 'GRAFTFixture' : 'GRAFT', title: productName, authors: 'GRAFT', description: 'GRAFT desktop',
       exe: `${productName}.exe`, setupExe: `${productName.replace(/ /g, '-')}-${version}-Setup.exe`, setupIcon: iconBase + '.ico', noMsi: true } },
     { name: '@electron-forge/maker-zip', platforms: ['darwin', 'win32'] },
   ],
