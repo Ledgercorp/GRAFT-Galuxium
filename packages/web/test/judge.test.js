@@ -57,10 +57,13 @@ test('static public directory has only reviewed assets and no executable backend
   for (const f of ['index.html', 'docs.html']) {
     const page = read(f);
     for (const [, href] of page.matchAll(/(?:href|src)="([^"#]+)(?:#[^"]*)?"/g)) {
+      if (href.startsWith('https://')) continue;
       const file = href.split('#')[0].replace(/^\.\//, '') || 'index.html';
       assert.ok(Object.hasOwn(publicFiles, file), `${f}: broken link ${href}`);
     }
   }
+  assert.match(read('index.html'), /https:\/\/graft-beta-downloads\.fly\.storage\.tigris\.dev\/GRAFT-0\.5\.0-galuxium-arm64\.dmg/);
+  assert.match(read('index.html'), /https:\/\/github\.com\/Ledgercorp\/GRAFT-Galuxium/);
   assert.doesNotMatch(read('app.js'), /innerHTML|eval\(|localhost|127\.0\.0\.1|\/api\//);
 });
 test('preview serves judge routes and refuses repository, executor and mutation paths', async (t) => {

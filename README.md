@@ -10,7 +10,7 @@ GRAFT is a local developer tool with a macOS desktop application, a browser work
 
 The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only replay of a real, sanitized fixture workflow. It lets judges inspect discovery, source verification, architecture adaptation, generated changes, destination verification, and provenance without uploading a repository or executing code remotely. Repository-sensitive execution remains local. See [docs/GALUXIUM-JUDGE-EXPERIENCE.md](docs/GALUXIUM-JUDGE-EXPERIENCE.md) for the evidence boundary and reproduction steps.
 
-The public downloadable product artifact is a separate submission item and is still pending. Its final download location will be linked here after the signed publication candidate passes release acceptance.
+Download the accepted [GRAFT 0.5.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.5.0-galuxium-arm64.dmg). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for its SHA-256, installation steps, bounded judge-access behavior, and verified source revision.
 
 ## Quick start
 
@@ -41,7 +41,7 @@ The dashboard binds only to `127.0.0.1`; it is a local application, not a cloud 
 
 ## Desktop application
 
-An Apple Silicon macOS build packages the same workspace and engine with a bundled Node runtime, so it needs no Node installation of its own. Build it with `npm run desktop:make` and verify a build with `npm run desktop:package -- --fixture` followed by `npm run desktop:accept`. The candidate carries only a local ad-hoc development signature and no configured licence product, so it is not notarized or ready for public distribution. See [docs/DESKTOP-0.5.md](docs/DESKTOP-0.5.md).
+An Apple Silicon macOS build packages the same workspace and engine with a bundled Node runtime, so it needs no Node installation of its own. Build it with `npm run desktop:make` and verify a build with `npm run desktop:package -- --fixture` followed by `npm run desktop:accept`. Normal production candidates remain unconfigured and fail closed. The separately named Galuxium judge build uses the existing deterministic local demo provider and needs no external activation; it does not alter production or private-beta licensing. See [docs/DESKTOP-0.5.md](docs/DESKTOP-0.5.md) and [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
 
 GRAFT's purchase and licensing backend lives in `packages/licensing`: one product at $49 one-time through Stripe Checkout, with Stripe as merchant of record (Stripe Managed Payments handles tax). The desktop app never holds a Stripe secret; payment is verified server-side. See [packages/licensing/README.md](packages/licensing/README.md).
 

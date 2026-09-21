@@ -69,4 +69,4 @@ node_modules/.bin/electron scripts/demo/judge-acceptance.cjs --headed --url http
 
 Review the dry-run file list before every deployment. Roll back through the Vercel project to the previous verified production deployment; the initial deployment has no earlier GRAFT version to restore.
 
-Try Interactive Demo, Technical Documentation, and Security / Local-First Design work publicly. Watch Full Demo, Download GRAFT, and View GitHub are intentionally absent/pending because the compliant 2–5 minute video, public artifact, and public repository are separate workstreams. No broken action link was found.
+Try Interactive Demo, Technical Documentation, Security / Local-First Design, Download GRAFT, and View source on GitHub work publicly. The downloadable judge artifact and public source repository are complete; the compliant 2–5 minute video remains pending. Targeted link acceptance found no broken action link.
