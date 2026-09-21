@@ -12,6 +12,8 @@ The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only r
 
 Download the accepted [GRAFT 0.5.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.5.0-galuxium-arm64.dmg). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for its SHA-256, installation steps, bounded judge-access behavior, and verified source revision.
 
+Watch the [3:20 Galuxium product demonstration](https://youtu.be/mIaXLjbHsIA) to see the packaged judge build find, verify, adapt, assemble, and prove capabilities end to end.
+
 ## Quick start
 
 Requires Node.js 20 or newer and Git. macOS and Linux are the supported release targets; Windows process-tree cleanup is not supported to the same level.

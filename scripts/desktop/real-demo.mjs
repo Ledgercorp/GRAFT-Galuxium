@@ -17,9 +17,11 @@ import { spawn, execFileSync } from 'node:child_process';
 import { describePlatform } from '../../packages/desktop/src/platform.js';
 
 const host = describePlatform();
-const APP_DIR = path.resolve(`out/fixture/GRAFT Fixture-${host.platform}-${host.arch}`);
-const EXE = host.windows ? path.join(APP_DIR, 'GRAFT Fixture.exe') : path.join(APP_DIR, 'GRAFT Fixture.app', 'Contents/MacOS/GRAFT Fixture');
-const BUNDLE_ID = 'com.leftsock.graft.fixture';
+const JUDGE = process.argv.includes('--judge');
+const PRODUCT_NAME = JUDGE ? 'GRAFT Galuxium' : 'GRAFT Fixture';
+const APP_DIR = path.resolve(`out/${JUDGE ? 'judge' : 'fixture'}/${PRODUCT_NAME}-${host.platform}-${host.arch}`);
+const EXE = host.windows ? path.join(APP_DIR, `${PRODUCT_NAME}.exe`) : path.join(APP_DIR, `${PRODUCT_NAME}.app`, `Contents/MacOS/${PRODUCT_NAME}`);
+const BUNDLE_ID = JUDGE ? 'com.leftsock.graft.galuxium' : 'com.leftsock.graft.fixture';
 const KEY = 'GRAFT-FIXTURE-VALID';
 const arg = (name, fallback) => { const i = process.argv.indexOf(name); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : fallback; };
 const PORT = Number(arg('--port', 9336));
@@ -197,7 +199,7 @@ const idle = async (what, timeout = 300000, phases = null, expectedLabel = null)
 const text = (selector) => ui(`document.querySelector(${JSON.stringify(selector)})?.innerText || ''`);
 
 async function main() {
-  if (!fs.existsSync(EXE)) fail('Build the packaged fixture first: npm run desktop:package -- --fixture');
+  if (!fs.existsSync(EXE)) fail(`Build the packaged ${JUDGE ? 'judge candidate' : 'fixture'} first: npm run desktop:package -- --${JUDGE ? 'judge' : 'fixture'}`);
   for (const dir of [...WORKSPACES, ...(COMPOSE ? [] : [under(DESTINATION_NAME)])]) if (!fs.existsSync(dir)) fail(`${dir} does not exist`);
   const destinationRoot = COMPOSE ? null : fs.realpathSync(under(DESTINATION_NAME));
   const sourceRoot = fs.existsSync(under(SOURCE_NAME)) ? fs.realpathSync(under(SOURCE_NAME)) : null;
@@ -224,13 +226,20 @@ async function main() {
     evidence.app.version = startup.version; evidence.app.packaged = startup.packaged; evidence.app.runtime = startup.runtime;
     step('launched', { version: startup.version, packaged: startup.packaged, node: startup.runtime?.version });
 
-    // 1. Licence: typed into the licence page like a customer.
-    // The key goes through the licence page's own bridge (preload → IPC → licence service), the
-    // same call its form makes; the page navigates to the workspace when activation succeeds.
-    const activated = await ui(`(async () => { ${WAIT} const input = await wait(() => document.querySelector('#license-key')); if (!input) return { error: 'no licence form' }; input.value = ${JSON.stringify(KEY)}; return window.graftDesktop.activate(${JSON.stringify(KEY)}).then((v) => ({ submitted: true, allowed: v.allowed, message: v.message }), (e) => ({ error: String(e && e.message || e) })); })()`, 'license-ui').catch((err) => (/navigated or closed/.test(err.message) ? { submitted: true, navigated: true } : { error: err.message }));
-    if (activated.error) fail(`licence: ${activated.error}`);
-    if (/invalid|error|could not/i.test(activated.status)) fail(`licence: ${activated.status}`);
-    evidence.manualInterventions.push('typed the licence key into the licence page');
+    // 1. Access: the Galuxium judge build starts with its bounded demo entitlement. The fixture
+    // follows the customer activation flow through the page's own bridge and licence service.
+    let activated;
+    if (JUDGE) {
+      activated = await waitFor(
+        () => ui('window.graftDesktop.licenseStatus()', '127.0.0.1').then((status) => status?.allowed ? status : null).catch(() => null),
+        { timeout: 120000, interval: 1000, what: 'the judge demo entitlement' },
+      );
+    } else {
+      activated = await ui(`(async () => { ${WAIT} const input = await wait(() => document.querySelector('#license-key')); if (!input) return { error: 'no licence form' }; input.value = ${JSON.stringify(KEY)}; return window.graftDesktop.activate(${JSON.stringify(KEY)}).then((v) => ({ submitted: true, allowed: v.allowed, message: v.message }), (e) => ({ error: String(e && e.message || e) })); })()`, 'license-ui').catch((err) => (/navigated or closed/.test(err.message) ? { submitted: true, navigated: true } : { error: err.message }));
+      if (activated.error) fail(`licence: ${activated.error}`);
+      if (/invalid|error|could not/i.test(activated.status)) fail(`licence: ${activated.status}`);
+      evidence.manualInterventions.push('typed the licence key into the licence page');
+    }
     step('licence', activated);
 
     // 2. Discover: authorize the real workspace folder (native chooser answered by the fixture seam) and index it.

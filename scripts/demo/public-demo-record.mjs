@@ -17,9 +17,10 @@ import { spawn, execFileSync } from 'node:child_process';
 import { setup, SOURCES, NEW_SOFTWARE, DEMO_HOME } from './public-demo-setup.mjs';
 
 const OUT_DIR = path.resolve('docs/demo');
-const WORK = path.join(os.homedir(), '.graft-demo', 'public-demo-recording');
+const JUDGE = process.argv.includes('--judge');
+const WORK = path.join(os.homedir(), '.graft-demo', JUDGE ? 'public-demo-recording-galuxium' : 'public-demo-recording');
 const FRAMES = path.join(WORK, 'evidence');
-const FINAL = path.join(OUT_DIR, 'GRAFT-demo.mp4');
+const FINAL = process.env.GRAFT_DEMO_OUTPUT || (JUDGE ? path.join(os.homedir(), 'GRAFT-Galuxium-Demo.mp4') : path.join(OUT_DIR, 'GRAFT-demo.mp4'));
 const PACE_MS = Number(process.env.GRAFT_DEMO_PACE_MS || 1500);
 const FONT = '/System/Library/Fonts/Supplemental/Arial Bold.ttf';
 const FONT_REGULAR = '/System/Library/Fonts/Supplemental/Arial.ttf';
@@ -33,7 +34,7 @@ if (!cutOnly) {
   const env = { ...process.env, GRAFT_DEMO_HOME: DEMO_HOME, GRAFT_DEMO_EVIDENCE_DIR: FRAMES, GRAFT_DEMO_PACE_MS: String(PACE_MS), GRAFT_DEMO_SHOW_RESULT: '1', GRAFT_DEMO_BROWSER: browser,
     GRAFT_DEMO_COMPOSE_NAME: 'Client portal', GRAFT_DEMO_ASSEMBLE_NAME: 'Client portal', GRAFT_DEMO_COMPOSE_TEXT: 'People sign in, and features can be turned on for some of them.' };
   const log = fs.openSync(path.join(WORK, 'driver.log'), 'w');
-  const driver = spawn(process.execPath, ['scripts/desktop/real-demo.mjs', '--workspace', SOURCES, '--source', 'cuf', '--second-source', path.join(SOURCES, 'swiveljs'), '--assemble', NEW_SOFTWARE, '--compose', '--finalize', '--session', 'public-demo'], { env, stdio: ['ignore', log, log] });
+  const driver = spawn(process.execPath, ['scripts/desktop/real-demo.mjs', ...(JUDGE ? ['--judge'] : []), '--workspace', SOURCES, '--source', 'cuf', '--second-source', path.join(SOURCES, 'swiveljs'), '--assemble', NEW_SOFTWARE, '--compose', '--finalize', '--session', 'public-demo'], { env, stdio: ['ignore', log, log] });
   const code = await new Promise((r) => driver.once('exit', r));
   if (code !== 0) { console.error(`driver exited ${code}; see ${path.join(WORK, 'driver.log')}`); process.exit(code); }
 }
@@ -61,6 +62,13 @@ const scenes = [
   ['MEASURED', 'What the finalized application actually answered, and what the flags actually did', 5],
   [frame('scene-ending'), 'Find it. Fit it. Prove it.', 4],
 ].filter(([f]) => f);
+if (JUDGE) {
+  const finalDurations = scenes.length === 18
+    ? [9, 11, 12, 7, 9, 10, 11, 8, 11, 13, 14, 13, 7, 5, 6, 7, 10, 6]
+    : [10, 13, 14, 8, 10, 11, 13, 9, 13, 15, 16, 15, 8, 12, 7];
+  if (finalDurations.length !== scenes.length) throw new Error(`unexpected final scene count: ${scenes.length}`);
+  scenes.forEach((scene, index) => { scene[2] = finalDurations[index]; });
+}
 // The measured-results card: values read from the run's own evidence, never typed in.
 const evidence = JSON.parse(fs.readFileSync(path.join(DEMO_HOME, 'evidence.json'), 'utf8'));
 const st = evidence.composeStandalone || {}; const flags = evidence.steps.find((x) => x.name === 'compose-finalized-flags-run') || {};
@@ -81,7 +89,7 @@ const card = (file, lines, seconds) => {
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `color=c=0xf6f7f3:s=1920x1080:d=${seconds}:r=30`, '-vf', draw, '-pix_fmt', 'yuv420p', file]);
 };
 const parts = [];
-card(path.join(WORK, 'card-open.mp4'), [['YOU ALREADY BUILT IT.', 96, 420, '0x254c3c'], ['GRAFT · private capability memory and verified software reuse', 36, 560, '0x747d73']], 3.5);
+card(path.join(WORK, 'card-open.mp4'), [['YOU ALREADY BUILT IT.', 96, 420, '0x254c3c'], ['GRAFT · verified capability reuse', 36, 560, '0x747d73'], ['Find it. Fit it. Prove it.', 34, 630, '0x747d73']], JUDGE ? 8 : 3.5);
 parts.push(path.join(WORK, 'card-open.mp4'));
 scenes.forEach(([image, caption, seconds, mode], i) => {
   const file = path.join(WORK, `scene-${String(i + 1).padStart(2, '0')}.mp4`);
@@ -96,7 +104,13 @@ scenes.forEach(([image, caption, seconds, mode], i) => {
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-loop', '1', '-framerate', '30', '-t', String(seconds), '-i', image, '-vf', `${fit},${bar}`, '-r', '30', '-an', '-pix_fmt', 'yuv420p', file]);
   parts.push(file);
 });
-card(path.join(WORK, 'card-end.mp4'), [['YOU ALREADY BUILT IT.', 96, 360, '0x254c3c'], ['Your software remembers.', 48, 520, '0x254c3c'], ['Find it. Fit it. Prove it.', 40, 610, '0x747d73'], ['GRAFT · leftsocklabs.com', 30, 760, '0x747d73']], 4);
+card(path.join(WORK, 'card-end.mp4'), JUDGE ? [
+  ['GRAFT', 96, 230, '0x254c3c'],
+  ['Find it. Fit it. Prove it.', 46, 365, '0x254c3c'],
+  ['Try it · judge-topaz.vercel.app', 34, 545, '0x747d73'],
+  ['Source · github.com/Ledgercorp/GRAFT-Galuxium', 34, 615, '0x747d73'],
+  ['Download · GRAFT 0.5.0 · macOS Apple Silicon', 32, 685, '0x747d73'],
+] : [['YOU ALREADY BUILT IT.', 96, 360, '0x254c3c'], ['Your software remembers.', 48, 520, '0x254c3c'], ['Find it. Fit it. Prove it.', 40, 610, '0x747d73'], ['GRAFT · leftsocklabs.com', 30, 760, '0x747d73']], JUDGE ? 18 : 4);
 parts.push(path.join(WORK, 'card-end.mp4'));
 fs.writeFileSync(path.join(WORK, 'concat.txt'), parts.map((p) => `file '${p}'`).join('\n'));
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(WORK, 'concat.txt'), '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', FINAL]);
