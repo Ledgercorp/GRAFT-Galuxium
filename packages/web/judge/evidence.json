@@ -1,11 +1,11 @@
 {
-  "sha256": "f83fbc4cd6ada64e035f020ac6e8f1b0ca2c1fa62d6d1a4cc4098886bdc1c532",
+  "sha256": "c582f17b9c7ec5121ede1d5fe2b28aa604be1993314cab2718291264f6177cc9",
   "payload": {
-    "schemaVersion": 1,
-    "recordedAt": "2026-09-20T19:06:56.156Z",
+    "schemaVersion": 2,
+    "recordedAt": "2026-09-22T17:34:28.006Z",
     "generator": {
       "command": "node scripts/demo/judge-evidence.mjs",
-      "graftRevision": "8c1216e8bca2486202d90703fbec3dca531867d5"
+      "graftRevision": "3816baea64b3b377ff2d53d32d1b45d75bbff393"
     },
     "capability": {
       "name": "Email & password authentication",
@@ -33,6 +33,35 @@
         }
       ]
     },
+    "memory": {
+      "memoryId": "sha256:9fb12ede13f77b16e8642ff6c6efef252bbcb1ee69047728f1b069a944d4b9f1",
+      "capabilityId": "sha256:dc7a74963fedd1f0cf021a11ee71854c134e1d6b9903daab81fc5d4307bcccba",
+      "sourceRevision": "27bd6521c078000b2da99c57bdb9f56c990fcee8",
+      "sourceFingerprint": "sha256:e3d5a1ae60c17424b997836cffbc96e52c746343a9811b70743281bbefc739a1",
+      "verification": "VERIFIED",
+      "localOnly": true,
+      "persisted": true,
+      "observations": [
+        {
+          "kind": "compatibility",
+          "state": "ADAPTABLE",
+          "destination": "new-startup",
+          "at": "2026-09-22T17:34:28.006Z"
+        },
+        {
+          "kind": "transplant",
+          "state": "VERIFIED",
+          "destination": "new-startup",
+          "at": "2026-09-22T17:34:28.006Z"
+        },
+        {
+          "kind": "refusal",
+          "state": "INCOMPATIBLE",
+          "destination": "new-startup-existing-auth",
+          "at": "2026-09-22T17:34:28.006Z"
+        }
+      ]
+    },
     "source": {
       "name": "old-saas-project",
       "fixture": "fixtures/old-saas-project",
@@ -42,7 +71,7 @@
         "framework": "node-http",
         "persistence": "module-state"
       },
-      "revision": "b3c44b45559b136bfbcafd65c2d933687be93c6b",
+      "revision": "27bd6521c078000b2da99c57bdb9f56c990fcee8",
       "discovery": [
         {
           "id": "authentication",
@@ -81,21 +110,22 @@
       ],
       "verification": {
         "verdict": "VERIFIED",
-        "startedAt": "2026-09-20T19:06:52.453Z",
-        "finishedAt": "2026-09-20T19:06:53.587Z",
+        "startedAt": "2026-09-22T17:34:25.276Z",
+        "finishedAt": "2026-09-22T17:34:26.063Z",
         "summary": {
           "required": 6,
           "passed": 6,
           "failed": 0,
           "inconclusive": 0
         },
-        "envelopeDigest": "84902a1830b8392f219fd155b24277fdfbdaa7dc04b43eb3d1f7a35502cc979e",
+        "envelopeDigest": "90867964fd5770c8ac84724ba4c3033c71b5938266833576f496db1148e408fb",
         "tests": [
           {
             "id": "auth.register.creates-account",
             "description": "Registering with a fresh email creates an account and opens a session.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -120,6 +150,7 @@
             "description": "Correct credentials are accepted and produce a session cookie.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -168,6 +199,7 @@
             "description": "An incorrect password is rejected. This is the test that fails if hashing was reimplemented wrongly.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -204,6 +236,7 @@
             "description": "The session cookie issued at login identifies the same user on a later request.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -252,6 +285,7 @@
             "description": "After logout the previously valid session no longer authenticates.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -320,6 +354,7 @@
             "description": "A protected route rejects a request carrying no session.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "anonymous",
@@ -344,6 +379,7 @@
             "description": "A session issued before the application restarts is still honoured after it (durable session storage).",
             "required": false,
             "outcome": "failed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -397,6 +433,65 @@
           }
         ]
       }
+    },
+    "compatibility": {
+      "compatible": {
+        "state": "COMPATIBLE",
+        "transplantAllowed": true,
+        "reasons": []
+      },
+      "adaptable": {
+        "state": "ADAPTABLE",
+        "transplantAllowed": true,
+        "reasons": [
+          {
+            "id": "routes.collision",
+            "status": "warn",
+            "title": "Route collision detected",
+            "detail": "The destination already answers: POST /auth/login."
+          }
+        ]
+      },
+      "incompatible": {
+        "state": "INCOMPATIBLE",
+        "transplantAllowed": false,
+        "reasons": [
+          {
+            "id": "routes.collision",
+            "status": "warn",
+            "title": "Route collision detected",
+            "detail": "The destination already answers: POST /auth/login."
+          },
+          {
+            "id": "files.collision",
+            "status": "block",
+            "title": "Files already exist",
+            "detail": "Would overwrite: src/auth/routes.js."
+          }
+        ]
+      }
+    },
+    "incompatibleRefusal": {
+      "fixture": "fixtures/new-startup-existing-auth",
+      "state": "INCOMPATIBLE",
+      "reasons": [
+        {
+          "id": "routes.collision",
+          "status": "warn",
+          "title": "Route collision detected",
+          "detail": "The destination already answers: POST /auth/login."
+        },
+        {
+          "id": "files.collision",
+          "status": "block",
+          "title": "Files already exist",
+          "detail": "Would overwrite: src/auth/routes.js."
+        }
+      ],
+      "transplantAttempted": true,
+      "refused": true,
+      "destinationMutated": false,
+      "existingFilePreserved": true
     },
     "destination": {
       "name": "new-startup",
@@ -407,26 +502,27 @@
         "framework": "node-http",
         "persistence": "shared-store"
       },
-      "baseRevision": "2aeb0402ef9479e5f8c4934ea69a65c808f524cb",
-      "revision": "4d3daaaee2be49a9fe69f00cf674d1c1cdd97674",
+      "baseRevision": "ef3ee890cd47b70866c6a3434cd203d28e837940",
+      "revision": "2956fb70516f7b3964b71adaf17a4c245fae2a0d",
       "entrypoint": "src/main.js",
       "verification": {
         "verdict": "VERIFIED",
-        "startedAt": "2026-09-20T19:06:55.223Z",
-        "finishedAt": "2026-09-20T19:06:56.156Z",
+        "startedAt": "2026-09-22T17:34:27.250Z",
+        "finishedAt": "2026-09-22T17:34:28.006Z",
         "summary": {
           "required": 6,
           "passed": 6,
           "failed": 0,
           "inconclusive": 0
         },
-        "envelopeDigest": "29ffef40591ca817c6e4c3d62b9a2b33c4a98ff4e06240b8b58968ff70467fda",
+        "envelopeDigest": "cf3d8b8863d9795eef455adf59ccdf4bf87ef45b7e488e8ef26e10d5cebc0b47",
         "tests": [
           {
             "id": "auth.register.creates-account",
             "description": "Registering with a fresh email creates an account and opens a session.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -451,6 +547,7 @@
             "description": "Correct credentials are accepted and produce a session cookie.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -499,6 +596,7 @@
             "description": "An incorrect password is rejected. This is the test that fails if hashing was reimplemented wrongly.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -535,6 +633,7 @@
             "description": "The session cookie issued at login identifies the same user on a later request.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -583,6 +682,7 @@
             "description": "After logout the previously valid session no longer authenticates.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -651,6 +751,7 @@
             "description": "A protected route rejects a request carrying no session.",
             "required": true,
             "outcome": "passed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "anonymous",
@@ -675,6 +776,7 @@
             "description": "A session issued before the application restarts is still honoured after it (durable session storage).",
             "required": false,
             "outcome": "failed",
+            "evidenceType": "BEHAVIORAL_CONTRACT",
             "steps": [
               {
                 "name": "register",
@@ -729,15 +831,68 @@
         ]
       }
     },
+    "blueprint": {
+      "filename": "AGENTS.graft-graft-authentication-34f040cb.md",
+      "alternate": true,
+      "existingAgentsProtected": true,
+      "deterministic": true,
+      "content": "# GRAFT Blueprint Handoff\n\n## Objective\nApply the authentication capability to the reviewed destination.\n\n## Provenance\n- Blueprint: graft-authentication-34f040cb\n- Capability: authentication\n- Source: old-saas-project\n- Destination: new-startup\n\n## Required constraints\n- Verified in source\n- Destination architecture supported\n- HTTP layer identified\n- Entrypoint located\n- Persistence layer available\n- No file collisions\n- No conflicting user model\n- No new packages required\n- Environment satisfied\n\n## Adaptation requirements\n- Route collision detected: The destination already answers: POST /auth/login.\n\n## Prohibited modifications\n- Do not overwrite unrelated destination files.\n\n## Verification\n\n## Evidence expectations\n- Record source and destination revisions plus required verification results.\n"
+    },
+    "custody": {
+      "externalCallPerformed": false,
+      "sourceDerivedEgress": false,
+      "statement": "No source-derived material left this machine.",
+      "events": [
+        {
+          "provider": "fixture-provider",
+          "operation": "describe-capability",
+          "destination": "https://fixture.invalid",
+          "executionLocation": "local",
+          "sourceDerived": false,
+          "dataClass": "METADATA",
+          "decision": "ALLOW",
+          "reason": "policy-allowed",
+          "inputFingerprint": "sha256:8beefa082caff9a64f905da21e357d7d38a28e29c59423e680133ed13f28e831",
+          "timestamp": "2026-09-22T17:34:28.006Z",
+          "bytesOrItemCount": null,
+          "policy": {
+            "allowedDataClasses": [
+              "METADATA",
+              "NONE",
+              "STRUCTURE"
+            ]
+          }
+        },
+        {
+          "provider": "fixture-provider",
+          "operation": "adapt-source",
+          "destination": "https://fixture.invalid",
+          "executionLocation": "local",
+          "sourceDerived": true,
+          "dataClass": "SOURCE_EXCERPT",
+          "decision": "DENY",
+          "reason": "data-class-not-allowed:SOURCE_EXCERPT",
+          "inputFingerprint": "sha256:a39e8cd8feccb1f01a6763e5074bdd039457b5aed7869378122e5a148eb34f6f",
+          "timestamp": "2026-09-22T17:34:28.006Z",
+          "bytesOrItemCount": 22,
+          "policy": {
+            "allowedDataClasses": [
+              "METADATA"
+            ]
+          }
+        }
+      ]
+    },
     "plan": {
       "status": "ready",
+      "previewState": "ADAPTABLE",
       "adaptation": "Source is cjs/node-res; destination is esm/return-response. The capability is regenerated in the destination idiom, not copied.",
       "checks": [
         {
           "id": "source.verification",
           "status": "ok",
           "title": "Verified in source",
-          "detail": "6 acceptance test(s) passed against the running source project (node-entrypoint, b3c44b45559b)."
+          "detail": "6 acceptance test(s) passed against the running source project (node-entrypoint, 27bd6521c078)."
         },
         {
           "id": "architecture.profile",

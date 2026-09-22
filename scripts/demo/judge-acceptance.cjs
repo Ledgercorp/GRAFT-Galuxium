@@ -25,11 +25,14 @@ app.whenReady().then(async () => {
     await waitFor("!document.querySelector('#explorer').hidden");
     await evaluate("window.testKeys=[];window.testErrors=[];document.addEventListener('keydown',e=>window.testKeys.push(e.key));window.addEventListener('error',e=>window.testErrors.push(e.message))");
     check((await evaluate('document.body.innerText')).includes('hosted presentation / replay'), 'replay disclosure');
+    check(await evaluate("document.querySelector('a[href*=\"GRAFT-0.6.0-galuxium-arm64.dmg\"]') !== null"), '0.6 download link');
+    check(await evaluate("document.querySelector('a[href=\"https://github.com/Ledgercorp/GRAFT-Galuxium\"]') !== null"), 'public source link');
+    check((await evaluate('document.body.innerText')).includes('Previous Product Demo (0.5.0)'), 'previous video labelled');
     await evaluate("document.querySelector('a[href=\"#demo\"]').click()");
     check((await evaluate('location.hash')) === '#demo', 'landing to demo');
     check((await evaluate("document.querySelector('#panel').innerText")).includes('Source verification'), 'source discovery and verification');
     // Native key input activates every stage button; focus moves to the panel after activation.
-    for (const [view, expected] of [['find', 'Discovered capability'], ['fit', 'Actual destination diff'], ['prove', 'Read the boundary of VERIFIED'], ['evidence', 'Evidence identifiers']]) {
+    for (const [view, expected] of [['find', 'Local Capability Memory'], ['fit', 'Compatibility Preview'], ['prove', 'Read the boundary of VERIFIED'], ['evidence', 'Assembly Ledger / custody events']]) {
       await evaluate(`document.querySelector('[data-view="${view}"]').focus()`);
       win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
       win.webContents.sendInputEvent({ type: 'char', keyCode: '\r' });
@@ -39,9 +42,12 @@ app.whenReady().then(async () => {
       check(await evaluate("document.activeElement.id === 'panel'"), `${view} focus destination`);
     }
     await evaluate("document.querySelector('[data-view=fit]').click()");
+    for (const expected of ['COMPATIBLE', 'ADAPTABLE', 'INCOMPATIBLE', 'Correct incompatible refusal', 'Blueprint → AGENTS.md', 'Capability Custody / Data Boundary']) {
+      check((await evaluate("document.querySelector('#panel').innerText")).includes(expected), `fit shows ${expected}`);
+    }
     check(await evaluate("document.querySelector('#diff-file').options.length === 6"), 'five generated files and entrypoint');
     await evaluate("const s=document.querySelector('#diff-file');s.selectedIndex=s.options.length-1;s.dispatchEvent(new Event('change'))");
-    check((await evaluate("document.querySelector('#panel pre').textContent")).includes('registerAuthRoutes'), 'entrypoint diff');
+    check((await evaluate("document.querySelector('[aria-label=\"Recorded destination patch\"]').textContent")).includes('registerAuthRoutes'), 'entrypoint diff');
     await evaluate("document.querySelector('[data-view=prove]').click()");
     check(await evaluate("document.querySelectorAll('.failed > summary').length === 2"), 'both optional failures visible');
     await evaluate("document.querySelector('summary').focus()");

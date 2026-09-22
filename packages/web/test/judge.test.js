@@ -14,9 +14,19 @@ test('recorded evidence is internally consistent and checksum-bound', async () =
   assert.equal(d.source.verification.verdict, 'VERIFIED');
   assert.equal(d.destination.verification.verdict, 'VERIFIED');
   assert.notEqual(d.destination.baseRevision, d.destination.revision);
+  assert.equal(d.memory.localOnly, true);
+  assert.equal(d.memory.persisted, true);
+  assert.deepEqual(Object.values(d.compatibility).map((item) => item.state), ['COMPATIBLE', 'ADAPTABLE', 'INCOMPATIBLE']);
+  assert.equal(d.incompatibleRefusal.refused, true);
+  assert.equal(d.incompatibleRefusal.destinationMutated, false);
+  assert.equal(d.blueprint.deterministic, true);
+  assert.equal(d.blueprint.existingAgentsProtected, true);
+  assert.deepEqual(d.custody.events.map((event) => `${event.dataClass}:${event.decision}`), ['METADATA:ALLOW', 'SOURCE_EXCERPT:DENY']);
+  assert.equal(JSON.stringify(d).includes('fixture source excerpt'), false);
   for (const phase of [d.source, d.destination]) {
     assert.equal(phase.verification.summary.required, 6);
     assert.equal(phase.verification.tests.find((t) => t.id === 'auth.session.survives-restart').outcome, 'failed');
+    assert.ok(phase.verification.tests.every((t) => t.evidenceType === 'BEHAVIORAL_CONTRACT'));
   }
   assert.match(d.diff, /registerAuthRoutes/);
   assert.equal(d.plan.conflictResolutionApproved, true);
@@ -62,8 +72,9 @@ test('static public directory has only reviewed assets and no executable backend
       assert.ok(Object.hasOwn(publicFiles, file), `${f}: broken link ${href}`);
     }
   }
-  assert.match(read('index.html'), /https:\/\/graft-beta-downloads\.fly\.storage\.tigris\.dev\/GRAFT-0\.5\.0-galuxium-arm64\.dmg/);
+  assert.match(read('index.html'), /https:\/\/graft-beta-downloads\.fly\.storage\.tigris\.dev\/GRAFT-0\.6\.0-galuxium-arm64\.dmg/);
   assert.match(read('index.html'), /https:\/\/github\.com\/Ledgercorp\/GRAFT-Galuxium/);
+  assert.match(read('index.html'), /Previous Product Demo \(0\.5\.0\)/);
   assert.doesNotMatch(read('app.js'), /innerHTML|eval\(|localhost|127\.0\.0\.1|\/api\//);
 });
 test('preview serves judge routes and refuses repository, executor and mutation paths', async (t) => {

@@ -17,7 +17,7 @@ function verification(title, r) {
   for (const t of r.tests) {
     const body = el('div'); body.append(el('p', t.description));
     for (const s of t.steps) body.append(el('p', s.status === null ? 'Application restart' : `${s.request} → HTTP ${s.status}`), list(s.checks.map((c) => `${c.ok ? 'PASS' : 'FAIL'} · ${c.name}`)));
-    const row = details(`${t.outcome.toUpperCase()} · ${t.required ? 'required' : 'optional'} · ${t.id}`, body);
+    const row = details(`${t.outcome.toUpperCase()} · ${t.evidenceType} · ${t.required ? 'required' : 'optional'} · ${t.id}`, body);
     row.className = t.outcome; tests.append(row);
   }
   return section(title, el('p', r.verdict, `verdict ${r.verdict === 'VERIFIED' ? 'passed' : 'failed'}`),
@@ -30,11 +30,23 @@ export function renderView(view, d) {
   if (view === 'find') {
     panel.append(grid(section('Source project', facts({ Project: d.source.name, Fixture: d.source.fixture, Modules: d.source.shape.moduleSystem, Handlers: d.source.shape.handlerContract, Persistence: d.source.shape.persistence }), code(d.source.revision)),
       section('Discovered capability', el('h4', d.capability.name), list(d.source.discovery.map((c) => `${c.displayName} · ${c.harvestable ? 'harvestable' : 'discovery only'} — ${c.summary}`)))));
-    panel.append(section('Behavior captured for harvest', list(d.capability.behaviors.map((b) => b.text)), details('Discovery signals', list(d.source.signals.map((s) => `${s.id} — ${s.evidence}`)))), verification('Source verification', d.source.verification));
+    panel.append(section('Behavior captured for harvest', list(d.capability.behaviors.map((b) => b.text)), details('Discovery signals', list(d.source.signals.map((s) => `${s.id} — ${s.evidence}`)))),
+      section('Local Capability Memory', facts({ Identity: d.memory.memoryId, 'Source revision': d.memory.sourceRevision, Verification: d.memory.verification, Persisted: d.memory.persisted ? 'yes' : 'no', Storage: d.memory.localOnly ? 'local only' : 'external' }),
+        list(d.memory.observations.map((o) => `${o.kind} · ${o.state} · ${o.destination}`))),
+      verification('Source verification', d.source.verification));
   } else if (view === 'fit') {
     panel.append(grid(section('Destination project', facts({ Project: d.destination.name, Modules: d.destination.shape.moduleSystem, Handlers: d.destination.shape.handlerContract, Persistence: d.destination.shape.persistence, Entrypoint: d.destination.entrypoint })),
       section('Transplant plan', el('p', d.plan.adaptation), list(d.plan.steps.map((s) => `${s.order}. ${s.description}`)))));
-    panel.append(section('Compatibility and conflicts', list(d.plan.checks.map((c) => `${c.status.toUpperCase()} · ${c.title} — ${c.detail}`)), el('p', `Conflict resolution explicitly approved in the local fixture run: ${d.plan.conflictResolutionApproved ? 'yes' : 'no'}.`)));
+    const compatibility = section('Compatibility Preview', el('p', `Selected fixture: ${d.plan.previewState}. Deterministic host checks produced every state below.`));
+    for (const item of Object.values(d.compatibility)) compatibility.append(details(`${item.state} · transplant ${item.transplantAllowed ? 'allowed' : 'refused'}`,
+      list(item.reasons.length ? item.reasons.map((reason) => `${reason.title} — ${reason.detail}`) : ['No meaningful adaptation or blocking constraint was detected.'])));
+    panel.append(compatibility,
+      section('Correct incompatible refusal', facts({ State: d.incompatibleRefusal.state, 'Transplant attempted': d.incompatibleRefusal.transplantAttempted ? 'yes' : 'no', Refused: d.incompatibleRefusal.refused ? 'yes' : 'no', 'Destination mutated': d.incompatibleRefusal.destinationMutated ? 'yes' : 'no', 'Existing file preserved': d.incompatibleRefusal.existingFilePreserved ? 'yes' : 'no' }),
+        list(d.incompatibleRefusal.reasons.map((reason) => `${reason.title} — ${reason.detail}`))),
+      section('Blueprint → AGENTS.md', facts({ Export: d.blueprint.filename, Deterministic: d.blueprint.deterministic ? 'yes' : 'no', 'Existing AGENTS.md protected': d.blueprint.existingAgentsProtected ? 'yes' : 'no' }), code(d.blueprint.content)),
+      section('Capability Custody / Data Boundary', el('p', d.custody.statement),
+        list(d.custody.events.map((event) => `${event.decision} · ${event.dataClass} · ${event.provider}/${event.operation} · source-derived: ${event.sourceDerived ? 'yes' : 'no'} · ${event.reason}`))),
+      section('Compatibility and conflicts', list(d.plan.checks.map((c) => `${c.status.toUpperCase()} · ${c.title} — ${c.detail}`)), el('p', `Conflict resolution explicitly approved in the local fixture run: ${d.plan.conflictResolutionApproved ? 'yes' : 'no'}.`)));
     const diff = section('Actual destination diff', el('p', 'Select the entrypoint or a generated file. This is the recorded Git patch, not a reconstruction.'));
     const label = el('label', 'Changed file'); label.htmlFor = 'diff-file';
     const select = el('select'); select.id = 'diff-file';
@@ -44,11 +56,12 @@ export function renderView(view, d) {
     select.addEventListener('change', () => { pre.textContent = chunks[Number(select.value)]; });
     diff.append(label, select, pre); panel.append(diff);
   } else if (view === 'prove') {
-    panel.append(el('p', 'GRAFT booted each fixture locally and exercised its behavior over HTTP. Open a case to inspect requests, status codes, and assertions.'), grid(verification('Source', d.source.verification), verification('Destination', d.destination.verification)),
+    panel.append(el('p', 'GRAFT booted each fixture locally and exercised its behavior over HTTP. Each case retains its evidence type instead of collapsing into one anonymous green state. Open a case to inspect requests, status codes, and assertions.'), grid(verification('Source', d.source.verification), verification('Destination', d.destination.verification)),
       section('Read the boundary of VERIFIED', el('p', 'VERIFIED means the required acceptance cases passed. The optional session-after-restart case failed in both fixtures: sessions are held in memory. These results do not establish production authentication security, durable storage, or support for arbitrary architectures.')));
   } else {
-    panel.append(section('Recorded run', facts({ Recorded: d.recordedAt, 'GRAFT revision': d.generator.graftRevision, 'Source revision': d.source.revision, 'Destination before transplant': d.destination.baseRevision, 'Destination verified revision': d.destination.revision, Regenerate: d.generator.command })),
+    panel.append(section('Recorded run', facts({ Recorded: d.recordedAt, 'GRAFT revision': d.generator.graftRevision, 'Capability Memory identity': d.memory.memoryId, 'Source revision': d.source.revision, 'Destination before transplant': d.destination.baseRevision, 'Destination verified revision': d.destination.revision, Regenerate: d.generator.command })),
       section('Evidence identifiers', facts({ 'Source proof envelope digest': d.source.verification.envelopeDigest, 'Destination proof envelope digest': d.destination.verification.envelopeDigest }), el('p', 'These identifiers refer to the original local proof envelopes. This public projection omits raw envelopes, response bodies, environment values, and recovery receipts. Its download checksum detects corruption; it is not a signature or independent attestation.')),
+      section('Assembly Ledger / custody events', list(d.custody.events.map((event) => `${event.timestamp} · ${event.decision} ${event.dataClass} · ${event.inputFingerprint}`))),
       section('Generated file SHA-256', facts(Object.fromEntries(d.plan.files.map((f) => [f.path, f.sha256])))));
     const a = el('a', 'Download sanitized evidence JSON ↧', 'button'); a.href = './evidence.json'; a.download = 'graft-recorded-evidence.json'; panel.append(a);
   }
