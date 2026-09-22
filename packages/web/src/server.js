@@ -29,6 +29,10 @@ import { openDogfoodSession, recorderFromEnvironment, repositoryIdentity, planSu
 import { addRoot, removeRoot, buildIndex, loadIndex, refreshProject, staleProjects, searchCapabilities, getCapability, indexSummary, discoverCapabilityCandidates } from '../../core/src/workspace/index.js';
 import { loadAgentConfig, saveAgentConfig, clearAgentConfig, describeAgentConfig, resolveApiKey } from '../../core/src/agent/config.js';
 import { createAgentRuntime, createGrant, SCOPES } from '../../core/src/agent/runtime.js';
+import { loadCustodyEvents } from '../../core/src/agent/data-boundary.js';
+import { findRememberedCapabilities, rememberCapability, recordCapabilityMemoryObservation } from '../../core/src/capability/memory.js';
+import { toCapabilityContract } from '../../core/src/capability/contract.js';
+import { blueprintAgentsMd, exportBlueprintAgentsMd } from '../../core/src/export/agents-md.js';
 import { prepareTransplant, listTransplants, getTransplant, assertApplyable, transition, stateForVerdict, changedFiles, cleanupTransplant, worktreesDir } from '../../core/src/apply/worktree.js';
 import { profilesByKind } from '../../core/src/emit/profiles.js';
 import { runLibraryAdaptation, recheckLibraryAdaptationSupport, librarySourceRoot } from '../../core/src/laboratory/library-assembly.js';
@@ -188,7 +192,12 @@ function proofView(report, repair, changeset, hostBaseline = null) {
     providerBoundary: report.providerDouble ? { kind: 'deterministic provider double', injectedThrough: report.providerDouble.injectedThrough, liveProvider: false, calls: report.providerDoubleCalls || [] } : null,
     atlas: report.atlasEntry ? { recorded: true, entryId: report.atlasEntry.entryId } : { recorded: false, error: report.atlasRecordingError || null },
     runtime: report.runtime, finishedAt: report.finishedAt,
-    results: (report.results || []).map((r) => ({ id: r.id, outcome: r.outcome, required: r.required, description: r.description || null, reason: r.reason || null, steps: (r.steps || []).map((s) => ({ name: s.name, request: s.request, status: s.status, ok: s.ok, checks: s.checks })) })),
+    typedEvidence: [
+      ...(report.proofEnvelope?.source?.revision ? [{ type: 'SOURCE_REVISION', outcome: 'recorded' }] : []),
+      ...(report.proofEnvelope?.destination?.revision ? [{ type: 'DESTINATION_REVISION', outcome: 'recorded' }] : []),
+      ...(report.results || []).map((result) => ({ type: result.kind === 'build' ? 'BUILD' : result.kind === 'unit' ? 'UNIT' : result.kind === 'integration' ? 'INTEGRATION' : 'BEHAVIORAL_CONTRACT', outcome: result.outcome })),
+    ],
+    results: (report.results || []).map((r) => ({ id: r.id, evidenceType: r.kind === 'build' ? 'BUILD' : r.kind === 'unit' ? 'UNIT' : r.kind === 'integration' ? 'INTEGRATION' : 'BEHAVIORAL_CONTRACT', outcome: r.outcome, required: r.required, description: r.description || null, reason: r.reason || null, steps: (r.steps || []).map((s) => ({ name: s.name, request: s.request, status: s.status, ok: s.ok, checks: s.checks })) })),
     changeset: changeset ? { created: changeset.componentsIntroduced.map((c) => c.path), modified: changeset.componentsAdapted.filter((c) => c.path).map((c) => c.path), security: changeset.securitySensitiveChanges, dependencies: changeset.dependenciesAdded } : null,
   };
 }
@@ -284,7 +293,14 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
         timings.applyMs = applyClock();
         // The branch the transplant lives on: the one apply cut, or the managed worktree's own.
         const branch = result.branch || managedBranch;
-        if (result.refused) { record.event('apply.refused', { planId: saved.plan.id, startingHead, problems: result.problems }, { stage: 'apply', elapsedMs: timings.applyMs }); throw fail(result.problems.map((p) => p.message).join(' '), 409); }
+  if (result.refused) {
+    record.event('apply.refused', { planId: saved.plan.id, startingHead, problems: result.problems }, { stage: 'apply', elapsedMs: timings.applyMs });
+    try {
+      recordCapabilityMemoryObservation({ capabilityId: toCapabilityContract(saved.m).capabilityId, sourceRevision: sourceRevisionOf(saved.m) || saved.m.provenance.capabilitySource.fingerprint, sourceFingerprint: saved.m.provenance.capabilitySource.fingerprint,
+        observation: { kind: 'refusal', outcome: 'refused', compatibility: saved.plan.compatibility.preview.state, reasons: saved.plan.compatibility.preview.reasons.map((reason) => reason.id) } });
+    } catch (error) { job.memoryRecordingError = error.message; }
+    throw fail(result.problems.map((p) => p.message).join(' '), 409);
+  }
         // Preserve authoritative write outcome even if verification or recording later fails.
         job.applied = { branch, receiptPath: result.receiptPath, files: result.filesWritten, rollback: result.recovery.rollback };
         recordTransplant({ planId: saved.plan.id, capability: saved.m.identity.slug, destination: p.root,
@@ -312,8 +328,20 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
         try { outcome = await repairAndVerify({ plan: saved.plan, destRoot: p.root, verify, maxAttempts: 1 }); }
         catch (err) { record.error('verify', err, { planId: saved.plan.id, branch, startingHead, timings }); throw err; }
         timings.repairMs = loopClock() - timings.verifyMs.reduce((sum, v) => sum + v.elapsedMs, 0);
-        const report = outcome.report;
-        const repair = { attempts: outcome.attempts, repaired: outcome.repaired, initialVerdict: outcome.initial.verdict };
+  const report = outcome.report;
+  const memoryIdentity = {
+    capabilityId: toCapabilityContract(saved.m).capabilityId,
+    sourceRevision: sourceRevisionOf(saved.m) || saved.m.provenance.capabilitySource.fingerprint,
+    sourceFingerprint: saved.m.provenance.capabilitySource.fingerprint,
+  };
+  try {
+    recordCapabilityMemoryObservation({ ...memoryIdentity, observation: {
+      kind: 'transplant', outcome: report.verdict, destination: p.name,
+      destinationRevision: report.proofEnvelope?.destination?.revision || null,
+      compatibility: saved.plan.compatibility.preview.state,
+    } });
+  } catch (error) { job.memoryRecordingError = error.message; }
+  const repair = { attempts: outcome.attempts, repaired: outcome.repaired, initialVerdict: outcome.initial.verdict };
         const changeset = buildSemanticChangeset({ plan: saved.plan, applied: result, report, proof: report.proof, repair });
         record.event('apply', { planId: saved.plan.id, startingHead, branch, filesWritten: result.filesWritten, receiptPath: result.receiptPath, entrypointEdits: (result.entrypointEdits || []).length, removedRoutes: result.removedRoutes || [],
           engine: result.receipt?.engine || null, report: reportSummary(report), initialReport: outcome.initial === report ? null : reportSummary(outcome.initial), repair: { ...repair, exhausted: outcome.exhausted, maxAttempts: outcome.maxAttempts }, changeset, timings, confirmations: ['trusted'] },
@@ -396,7 +424,7 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
         const t = prepareTransplant({ destinationRoot: receipt.root, sourceRoot, capabilitySlug: m.identity.slug });
         execution.transplantId = t.id; execution.worktree = { path: t.worktree.path, branch: t.worktree.branch, baseHead: t.baseHead }; persist();
         execution.capabilitySource = { kind: engine?.genome?.identity?.kind || null, implementationForm: 'library', genomeId: engine?.genome?.genomeId || null, irId: engine?.ir?.irId || null,
-          sourceProject: m.provenance?.sourceProject?.name || null, sourceRevision: sourceRevisionOf(m),
+          sourceProject: m.provenance?.sourceProject?.name || null, sourceRevision: sourceRevisionOf(m) || m.provenance.capabilitySource.fingerprint,
           sourceVerification: m.provenance?.verifiedInSource ? { verdict: m.provenance.verifiedInSource.verdict, summary: m.provenance.verifiedInSource.summary || null, at: m.provenance.verifiedInSource.at || null } : null };
         execution.status = 'APPLYING'; persist();
 
@@ -996,7 +1024,16 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
         if (!policy.bankable || verification?.verdict !== 'VERIFIED') return { report: verification, banked: false };
         job.phase = 'Saving verified capability';
         writeManifest(bankDir(), m);
-        return { report: verification, banked: true, slug: m.identity.slug };
+        const capabilityId = toCapabilityContract(m).capabilityId;
+        const memory = rememberCapability({
+          capabilityId,
+          slug: m.identity.slug,
+          sourceRevision: sourceRevisionOf(m) || m.provenance.capabilitySource.fingerprint,
+          sourceFingerprint: m.provenance.capabilitySource.fingerprint,
+          behavioralContract: m.behavior.statements,
+          sourceVerification: m.provenance.verifiedInSource,
+        });
+        return { report: verification, banked: true, slug: m.identity.slug, memory: { memoryId: memory.memoryId, sourceRevision: memory.sourceRevision } };
       });
     }
     if (route === '/api/plan') {
@@ -1030,6 +1067,20 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
       if (plans.size > 30) plans.delete(plans.keys().next().value);
       if (transplant) transition(transplant.id, 'READY', { plan: { planId: plan.id, status: plan.status, compatibility: plan.compatibility.status, files: plan.files.map((f) => f.path), entrypoint: plan.destination.entrypoint, recipe: plan.engine.recipe?.name || null, createdAt: plan.createdAt }, reason: 'plan built' });
       return { id, plan, safety, entrypoint, transplantId: transplant?.id || null, review: planReview(plan) };
+    }
+    if (route === '/api/plan/agents-preview') {
+      fields(body, ['planId']);
+      const saved = plans.get(string(body.planId, 'Plan'));
+      if (!saved || Date.now() - saved.created > 15 * 60 * 1000) throw fail('This preview expired. Build a fresh plan.', 409);
+      return { content: blueprintAgentsMd(saved.plan) };
+    }
+    if (route === '/api/plan/agents-export') {
+      fields(body, ['planId']);
+      const saved = plans.get(string(body.planId, 'Plan'));
+      if (!saved || Date.now() - saved.created > 15 * 60 * 1000) throw fail('This preview expired. Build a fresh plan.', 409);
+      const result = exportBlueprintAgentsMd(saved.plan, project(saved.projectId).root);
+      record.event('blueprint.agents-export', { planId: saved.plan.id, alternate: result.alternate }, { stage: 'plan' });
+      return result;
     }
     if (route === '/api/apply') {
       fields(body, ['planId', 'trusted']);
@@ -1089,7 +1140,7 @@ export async function startDashboard({ port = 4317, authorize = () => true, dogf
         };
         if (req.method === 'GET' && route === '/api/state') {
           const registry = loadRegistry();
-          return send(200, { projects: registry.projects.map(projectSummary), bank: bankSummary(), transplants: registry.transplants,
+          return send(200, { projects: registry.projects.map(projectSummary), bank: bankSummary(), capabilityMemory: findRememberedCapabilities().map(({ memoryId, slug, sourceRevision, sourceVerification, observations = [] }) => ({ memoryId, slug, sourceRevision, sourceVerification: sourceVerification?.verdict || null, observations })), custody: loadCustodyEvents().slice(-50).reverse(), transplants: registry.transplants,
             jobs, activeJob: active?.id || null, home: graftHome(), savedResults: registry.transplants.map(transplantSummary), dogfood: record.session, managedTransplants: listTransplants().map(transplantView),
             workspace: (() => { try { const index = loadIndex(); return { ...indexSummary({ index }), stale: staleCount(index) }; } catch (err) { return { error: err.message, roots: [], projects: 0 }; } })(),
             agent: (() => { try { return describeAgentConfig(loadAgentConfig()); } catch (err) { return { configured: false, error: err.message }; } })() });

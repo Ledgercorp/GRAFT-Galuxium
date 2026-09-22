@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { validateAcceptanceTests } from '../manifest/schema.js';
 
 export const CAPABILITY_CONTRACT_VERSION = '1.0.0';
-export const ENGINE_VERSION = '0.5.0';
+export const ENGINE_VERSION = '0.6.0';
 
 /** JSON canonicalization: object keys are unordered; array order remains meaningful. */
 export function canonicalSerialize(value) {

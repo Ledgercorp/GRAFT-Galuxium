@@ -5,8 +5,12 @@ export { writeManifest, readManifest, listOrganBank, readOrganEngine } from './m
 export * as engine from './engine/index.js';
 export { GRAFT_ENGINE_VERSION, buildEngineArtifacts, validateEngineArtifacts, analyzeForHost } from './engine/index.js';
 export { createTransplantPlan, analyzeCompatibility } from './plan/index.js';
+export { COMPATIBILITY_STATES, compatibilityPreview } from './plan/preview.js';
 export { emitSessionAuth, planEntrypointEdit, profileFor, SUPPORTED_PROFILES } from './emit/session-auth.js';
 export { applyTransplant, checkPreconditions, inspectRepo } from './apply/index.js';
 export { verifyCapability, decideVerdict, VERIFIED, FAILED, NEEDS_REVIEW } from './verify/index.js';
 export { CAPABILITY_CONTRACT_VERSION, canonicalSerialize, toCapabilityContract, validateCapabilityContract } from './capability/contract.js';
 export { inspectLocalCapability, localCompatibilityHistory } from './capability/knowledge.js';
+export { loadCapabilityMemory, rememberCapability, findRememberedCapabilities, recordCapabilityMemoryObservation } from './capability/memory.js';
+export { DATA_CLASSES, EGRESS_DECISIONS, requestEgress, createCustodyLedger, loadCustodyEvents } from './agent/data-boundary.js';
+export { blueprintAgentsMd, exportBlueprintAgentsMd } from './export/agents-md.js';

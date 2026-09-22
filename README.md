@@ -2,17 +2,17 @@
 
 **Find it. Fit it. Prove it.**
 
-Harvest a working capability from an existing project, regenerate it in another project's architecture, and verify its behavior over HTTP.
+GRAFT is an agent-independent software capability reuse and verification layer. It remembers proven capability locally, checks whether it fits a destination, defines the adaptation and evidence requirements, and verifies the resulting transplant.
 
-GRAFT is a local developer tool with a macOS desktop application, a browser workspace and a CLI. The 0.5.0 release candidate supports email/password authentication with cookie sessions, two destination architectures, and deterministic source and destination verification. It does not require an AI provider, account, or hosted service.
+GRAFT is a local developer tool with a macOS desktop application, a browser workspace and a CLI. The 0.6.0 release adds a deterministic Compatibility Preview with COMPATIBLE, ADAPTABLE and INCOMPATIBLE outcomes, local revision-bound Capability Memory, an explicit Data Boundary with custody evidence, portable AGENTS.md handoff export, and typed verification evidence. It does not require an AI provider, account, or hosted service.
 
 ## Hosted judge experience
 
-The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only replay of a real, sanitized fixture workflow. It lets judges inspect discovery, source verification, architecture adaptation, generated changes, destination verification, and provenance without uploading a repository or executing code remotely. Repository-sensitive execution remains local. See [docs/GALUXIUM-JUDGE-EXPERIENCE.md](docs/GALUXIUM-JUDGE-EXPERIENCE.md) for the evidence boundary and reproduction steps.
+The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only replay of a real, sanitized fixture workflow. It lets judges inspect source verification, local Capability Memory, deterministic compatibility states and refusal, a portable Blueprint handoff, Data Boundary custody events, typed destination evidence, and provenance without uploading a repository or executing code remotely. Repository-sensitive execution remains local. See [docs/GALUXIUM-JUDGE-EXPERIENCE.md](docs/GALUXIUM-JUDGE-EXPERIENCE.md) for the evidence boundary and reproduction steps.
 
-Download the accepted [GRAFT 0.5.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.5.0-galuxium-arm64.dmg). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for its SHA-256, installation steps, bounded judge-access behavior, and verified source revision.
+Download the accepted [GRAFT 0.6.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg) (`167,317,360` bytes; SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for installation steps, bounded judge-access behavior, and verified source revision.
 
-Watch the [3:20 Galuxium product demonstration](https://youtu.be/mIaXLjbHsIA) to see the packaged judge build find, verify, adapt, assemble, and prove capabilities end to end.
+The [previous 3:20 Galuxium product demonstration](https://youtu.be/mIaXLjbHsIA) shows the 0.5.0 workflow. A new 0.6.0 demonstration will replace this current video link after production and privacy review.
 
 ## Quick start
 
@@ -33,7 +33,7 @@ To install a distributable CLI from this checkout:
 
 ```sh
 npm pack
-npm install --global ./graft-0.5.0.tgz
+npm install --global ./graft-0.6.0.tgz
 graft ui
 ```
 

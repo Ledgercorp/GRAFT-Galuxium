@@ -29,6 +29,7 @@ function filesUnder(directory) {
 }
 
 const deniedPaths = [
+  /^bench\/compatibility-perturbations\.mjs$/,
   /^HANDOFF\.md$/,
   /^docs\/GALUXIUM-AUDIT\.md$/,
   /^docs\/GALUXIUM-PUBLICATION-AUDIT\.md$/,

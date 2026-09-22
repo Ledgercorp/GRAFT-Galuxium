@@ -1,4 +1,5 @@
 /HANDOFF.md export-ignore
+/bench/compatibility-perturbations.mjs export-ignore
 /docs/GALUXIUM-AUDIT.md export-ignore
 /docs/GALUXIUM-PUBLICATION-AUDIT.md export-ignore
 /docs/commercial-beta-readiness-0.1-discovery.md export-ignore

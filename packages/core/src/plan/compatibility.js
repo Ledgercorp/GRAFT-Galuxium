@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { profileFor, SUPPORTED_PROFILES } from '../emit/profiles.js';
+import { compatibilityPreview } from './preview.js';
 
 const OK = 'ok', WARN = 'warn', BLOCK = 'block';
 
@@ -130,11 +131,12 @@ export function analyzeCompatibility(manifest, destFp, { emittedPaths = [], emis
         optionalEnv.length ? `Optional, will fall back to defaults: ${optionalEnv.map((v) => `${v.name}=${v.default}`).join(', ')}.` : 'No environment variables required.'));
 
   const worst = checks.some((c) => c.status === BLOCK) ? BLOCK : checks.some((c) => c.status === WARN) ? WARN : OK;
-  return {
+  const result = {
     checks,
     status: worst,
     blocking: checks.filter((c) => c.status === BLOCK),
     warnings: checks.filter((c) => c.status === WARN),
     collisions,
   };
+  return { ...result, preview: compatibilityPreview(result) };
 }

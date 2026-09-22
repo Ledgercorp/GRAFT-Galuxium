@@ -16,7 +16,7 @@ import { handleSquirrelStartup } from './squirrel-startup.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(fs.readFileSync(path.join(here, '../config/product.json'), 'utf8'));
 const licenseUrl = pathToFileURL(path.join(here, '../license-ui/index.html')).href;
-let win, dashboard, licensing, fixture, quitting = false, quitTask;
+let win, dashboard, licensing, fixture, quitting = false, quitTask, betaTimer = null;
 const host = describePlatform();
 // A production app never accepts an environment override for its state or license provider.
 process.env.GRAFT_HOME = path.join(os.homedir(), '.graft');
@@ -78,8 +78,8 @@ else {
     });
     handle('graft:version', () => ({ version: app.getVersion(), testBuild: config.testBuild, purchaseEnabled: Boolean(safeExternalUrl(config.purchaseUrl)), inviteOnly: config.inviteOnly === true, supportEnabled: Boolean(supportAddress()) }));
     handle('graft:license-status', () => licensing.status());
-    handle('graft:activate', async (key) => { const value = await licensing.activate(key); scheduleBetaEnd(value); setImmediate(workspace); return value; });
-    handle('graft:validate', async () => { const value = await licensing.validate(); scheduleBetaEnd(value); setImmediate(value.allowed ? workspace : licensePage); return value; });
+    handle('graft:activate', async (key) => { const value = await licensing.activate(key); scheduleBetaEnd(value); setTimeout(() => { void workspace().catch((err) => console.error('Workspace navigation:', err.message)); }, 0); return value; });
+    handle('graft:validate', async () => { const value = await licensing.validate(); scheduleBetaEnd(value); setTimeout(() => { void (value.allowed ? workspace : licensePage)().catch((err) => console.error('License navigation:', err.message)); }, 0); return value; });
     handle('graft:deactivate', async () => { const value = await licensing.deactivate(); setImmediate(licensePage); return value; });
     // Private Beta Program (end of beta). The renderer supplies answers only; the main process adds
     // the three client facts and the service adds the licence identity. Nothing else leaves the machine.
@@ -159,9 +159,11 @@ else {
     win.show();
     // A background revalidation must never leave an unhandled rejection or a window that
     // silently keeps working; any failure here closes the workspace back to the licence page.
-    const revalidate = () => licensing.validate().catch(() => ({ allowed: false }))
-      .then((status) => { scheduleBetaEnd(status); return status.allowed || quitting || !win || win.isDestroyed() ? null : licensePage(); })
-      .catch((err) => console.error('License revalidation:', err.message));
+    function revalidate() {
+      return licensing.validate().catch(() => ({ allowed: false }))
+        .then((status) => { scheduleBetaEnd(status); return status.allowed || quitting || !win || win.isDestroyed() ? null : licensePage(); })
+        .catch((err) => console.error('License revalidation:', err.message));
+    }
     const timer = setInterval(revalidate, 24 * 60 * 60 * 1000);
     timer.unref();
     // A private-beta term that ends while GRAFT is open: the workspace API already refuses new
@@ -169,7 +171,6 @@ else {
     // revalidation confirms the verdict with the service and the window returns to the licence
     // page, where the end-of-beta experience is. Running server-side work (an assembly, a
     // verification) is not interrupted and nothing on disk is touched.
-    let betaTimer = null;
     function scheduleBetaEnd(status) {
       if (betaTimer) { clearTimeout(betaTimer); betaTimer = null; }
       if (status?.licenseType !== 'private_beta' || !Number.isFinite(status.expiresAt)) return;

@@ -271,8 +271,8 @@ async function main() {
     // with the product's own HTTP server serving the whole time). Wait for it in short bounded
     // polls before the first page-driven check, as the demo driver does; the product is not
     // judged on this stall, and a renderer that never answers still fails the run.
-    const firstPaint = await waitFor(() => cdpEvaluate(9333, '127.0.0.1', "Boolean(document.querySelector('.sidebar'))", { commandTimeout: 4000 }).catch(() => false), { timeout: Number(process.env.GRAFT_ACCEPT_FIRST_PAINT_MS || 300000), interval: 2000, what: 'the workspace renderer after activation' }).catch(() => false);
-    report('the workspace renderer answers after activation (harness wait, bounded)', firstPaint === true);
+    const firstPaint = await waitFor(() => cdpEvaluate(9333, '127.0.0.1', "({ href: location.href, license: Boolean(document.querySelector('#license-view')), sidebar: Boolean(document.querySelector('.sidebar')) })", { commandTimeout: 4000 }).then((state) => state?.sidebar === true && state.license === false && state.href.startsWith('http://127.0.0.1:')).catch(() => false), { timeout: Number(process.env.GRAFT_ACCEPT_FIRST_PAINT_MS || 300000), interval: 2000, what: 'the workspace renderer activation' }).catch(() => false);
+    report('activation exits the license page and reaches the workspace renderer', firstPaint === true);
 
     const api = client(origin, await token(origin));
     const src = await api.call('/api/projects', { path: source });
@@ -977,7 +977,7 @@ console.log(JSON.stringify({ enabled: on.isEnabled('Graft.enabled'), disabled: o
       body: document.body.innerText.slice(0, 4000),
     }))()`);
     report('the packaged renderer paints the workspace with the shipped version',
-      ui.navigation >= 5 && ui.version.includes('0.5.0') && ui.disconnected === false && ui.alert === '',
+      ui.navigation >= 5 && ui.version.includes('0.6.0') && ui.disconnected === false && ui.alert === '',
       `${ui.navigation} navigation items, version "${ui.version.trim()}"`);
     await cdpEvaluate(9333, '127.0.0.1', "location.hash = '#projects', null");
     await sleep(750);

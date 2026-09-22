@@ -13,6 +13,7 @@ import { DEFAULT_GRANT, requireScopes, escalationFor, createGrant, SCOPES, DEFAU
 import { TASKS, projectResponse, taskPrompt, AuthorityViolation, isAuthorityField, AUTHORITY_FIELDS, TASK_VERSION } from './tasks.js';
 import { adapterFor, extractJson, PROVIDER_IDS, validateEndpoint } from './providers.js';
 import { assertSendable, candidateContext, projectContext, capabilityContext, SANITIZER_VERSION } from './sanitize.js';
+import { createCustodyLedger, DATA_CLASSES, EGRESS_DECISIONS, requestEgress } from './data-boundary.js';
 
 export const RUNTIME_VERSION = '1.0.0';
 export { PROVIDER_IDS, SCOPES, DEFAULT_SCOPES, createGrant, PermissionError, AuthorityViolation, isAuthorityField, AUTHORITY_FIELDS };
@@ -23,8 +24,10 @@ export { projectContext, capabilityContext, candidateContext, assertSendable };
  * of this object; nothing here writes them to disk, logs them, or returns them.
  */
 export function createAgentRuntime({ provider, apiKey = null, model = null, endpoint = null, grant = DEFAULT_GRANT,
-  timeoutMs = 30000, maxTokens = 2048, fetchImpl = null, onRequest = null } = {}) {
+  timeoutMs = 30000, maxTokens = 2048, fetchImpl = null, onRequest = null, dataBoundary = requestEgress,
+  custodyLedger = null } = {}) {
   const adapter = adapterFor(provider);
+  const ledger = custodyLedger || createCustodyLedger({ persist: true });
   if (adapter.requiresEndpoint && !endpoint) throw new Error(`The ${adapter.label} provider needs an endpoint URL.`);
   if (endpoint) validateEndpoint(endpoint);
   if (!apiKey && !adapter.requiresEndpoint) throw new Error(`The ${adapter.label} provider needs an API key. GRAFT stores it only where you tell it to and never sends it anywhere else.`);
@@ -36,7 +39,7 @@ export function createAgentRuntime({ provider, apiKey = null, model = null, endp
    * Run one advisory task. Throws PermissionError when the grant is too narrow, and
    * AuthorityViolation when the model tried to assert something only GRAFT may assert.
    */
-  async function run(taskId, context, { extraScopes = [] } = {}) {
+  async function run(taskId, context, { extraScopes = [], egress = {} } = {}) {
     const task = TASKS[taskId];
     if (!task) throw new Error(`Unknown agent task "${taskId}". Available: ${Object.keys(TASKS).join(', ')}.`);
     requireScopes(grant, [...task.requiredScopes, ...extraScopes]);
@@ -44,6 +47,19 @@ export function createAgentRuntime({ provider, apiKey = null, model = null, endp
     // The sanitizer is the door; this is the lock on it. A caller cannot pass raw source or
     // secrets by mistake, because anything unsafe refuses to be sent at all.
     const payload = assertSendable(context);
+    const custody = dataBoundary({
+      provider: adapter.id,
+      operation: `agent:${taskId}`,
+      destination: endpoint || adapter.defaultEndpoint || adapter.id,
+      dataClass: egress.dataClass || DATA_CLASSES.METADATA,
+      sourceDerived: Boolean(egress.sourceDerived),
+      policyContext: egress.policyContext || {},
+      input: payload,
+    });
+    ledger.record(custody);
+    if (custody.decision !== EGRESS_DECISIONS.ALLOW) {
+      throw Object.assign(new Error(`Data Boundary denied ${taskId}: ${custody.reason}.`), { code: 'egress-denied', custody: custody.event });
+    }
     const prompt = taskPrompt(taskId, payload);
     const started = process.hrtime.bigint();
     onRequest?.({ task: taskId, promptBytes: Buffer.byteLength(prompt, 'utf8'), contextKeys: Object.keys(payload || {}) });
@@ -57,6 +73,7 @@ export function createAgentRuntime({ provider, apiKey = null, model = null, endp
       value, droppedFields: dropped,
       provider: adapter.id, model: raw.model,
       usage: raw.usage || null,
+      custody: custody.event,
       promptBytes: Buffer.byteLength(prompt, 'utf8'),
       elapsedMs: Math.round(Number(process.hrtime.bigint() - started) / 1e4) / 100,
     };
@@ -64,7 +81,8 @@ export function createAgentRuntime({ provider, apiKey = null, model = null, endp
 
   return { describe, run, grant, provider: adapter.id,
     can: (taskId) => !escalationFor(grant, TASKS[taskId]?.requiredScopes || []),
-    escalationFor: (taskId, extra = []) => escalationFor(grant, [...(TASKS[taskId]?.requiredScopes || []), ...extra]) };
+    escalationFor: (taskId, extra = []) => escalationFor(grant, [...(TASKS[taskId]?.requiredScopes || []), ...extra]),
+    custodyEvents: () => ledger.list() };
 }
 
 /**

@@ -92,6 +92,8 @@ test('dashboard completes real sample → harvest → preview → transplant →
   assert.equal(harvested.status, 'completed');
   assert.equal(harvested.result.report.verdict, 'VERIFIED');
   state = await app.request('state');
+  assert.equal(state.capabilityMemory.length, 1);
+  assert.equal(state.capabilityMemory[0].sourceVerification, 'VERIFIED');
   const slug = state.bank[0].slug;
   const unresolved = await app.request('plan', { slug, projectId: dest.id });
   assert.equal(unresolved.plan.status, 'needs-resolution');
@@ -100,6 +102,9 @@ test('dashboard completes real sample → harvest → preview → transplant →
   const preview = await app.request('plan', { slug, projectId: dest.id, resolveConflicts: true });
   assert.equal(preview.safety.ok, true);
   assert.ok(preview.plan.files.length > 0);
+  const agents = await app.request('plan/agents-preview', { planId: preview.id });
+  assert.equal(agents.status, 200);
+  assert.match(agents.content, /GRAFT Blueprint Handoff/);
   assert.equal(preview.entrypoint.before, original);
   assert.match(preview.entrypoint.after, /registerAuthRoutes/);
   assert.equal(fs.readFileSync(path.join(dest.root, 'src/main.js'), 'utf8'), original);
