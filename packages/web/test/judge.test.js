@@ -74,7 +74,12 @@ test('static public directory has only reviewed assets and no executable backend
   }
   assert.match(read('index.html'), /https:\/\/graft-beta-downloads\.fly\.storage\.tigris\.dev\/GRAFT-0\.6\.0-galuxium-arm64\.dmg/);
   assert.match(read('index.html'), /https:\/\/github\.com\/Ledgercorp\/GRAFT-Galuxium/);
-  assert.match(read('index.html'), /Previous Product Demo \(0\.5\.0\)/);
+  const finalDemo = /href="([^"]+)">Watch the GRAFT 0\.6 live demo/.exec(read('index.html'))?.[1];
+  assert.equal(finalDemo, 'https://youtu.be/9c-u03Tj62Y', 'final 0.6 live demo link');
+  assert.match(finalDemo, /^https:\/\//, 'final demo is a public HTTPS URL');
+  assert.match(read('index.html'), /0\.5\.0 demo \(historical\)/);
+  assert.doesNotMatch(read('index.html'), /Previous Product Demo/);
+  for (const term of ['Capability Memory', 'Capability Genome', 'Compatibility Atlas', 'Compatibility Preview', 'Blueprint', 'Laboratory', 'CUF verification', 'STALE', 'Data Boundary', 'not another coding agent', 'Proposed']) assert.ok(read('index.html').includes(term), term);
   assert.doesNotMatch(read('app.js'), /innerHTML|eval\(|localhost|127\.0\.0\.1|\/api\//);
 });
 test('preview serves judge routes and refuses repository, executor and mutation paths', async (t) => {

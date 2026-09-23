@@ -11,7 +11,8 @@ Prepared September 22, 2026 from the verified GRAFT 0.6.0 release and public sub
 | Short description | GRAFT is an agent-independent software capability reuse and verification layer that remembers proven capability locally, determines whether it fits, specifies adaptation, records custody, and proves the transplant. |
 | Hosted judge experience | https://judge-topaz.vercel.app |
 | Public source | https://github.com/Ledgercorp/GRAFT-Galuxium |
-| Previous product demo (0.5.0; replaced during the 0.6.0 video phase) | https://youtu.be/mIaXLjbHsIA |
+| Final product demo (GRAFT 0.6, 4:32 live capture) | https://youtu.be/9c-u03Tj62Y |
+| Earlier recordings (historical) | https://youtu.be/Oli6UA4X6Lg (earlier 0.6 walkthrough) · https://youtu.be/mIaXLjbHsIA (0.5.0) |
 | Product download | https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg |
 
 ## Devpost draft state
@@ -44,13 +45,13 @@ The authoritative Galuxium Nexus V2 overview and rules were rechecked on Septemb
 | Executive Briefing — Architecture | Local-first discovery, verification, planning, adaptation, and revision-bound evidence | README and architecture summary below | READY | **How we built it** | Hosted surface uses sample data only. |
 | Executive Briefing — Target Cohort | Developers, small teams, AI-assisted teams, and agencies that repeatedly build similar functionality | Executive briefing below | READY | **Who it is for** | Enterprise platform teams are a later cohort, not current customers. |
 | Fiscal Architecture | Implemented $49 one-time desktop licence plus clearly labeled planned Team and Enterprise recurring plans | Monetization section below; `packages/licensing/README.md` | READY | **Monetization / Fiscal architecture** | Recurring subscriptions and enterprise features are not claimed as implemented. |
-| Technical Keynote | 3:20 captioned 1080p product demonstration | https://youtu.be/mIaXLjbHsIA | READY | **Demo video** | H.264, 30 fps, no audio track. |
+| Technical Keynote | 4:32 captioned 1080p live capture of the packaged GRAFT 0.6 app being operated | https://youtu.be/9c-u03Tj62Y | READY | **Demo video** | H.264, 30 fps, no audio track; sped-up segments are labelled on screen. |
 | Technical Architecture & Scalability — 20% | Separated CLI/core, local workspace, desktop shell, deterministic plans, controlled processes, evidence store, and static public judge surface | README, SECURITY.md, project story | READY | **How we built it / Architecture** | No unsupported traffic or benchmark claims. |
 | Enterprise Governance & Compliance — 20% | Local-first trust boundary, validated paths and plans, controlled execution, cleanup, recovery, redaction, revision-bound evidence, and stated limitations | SECURITY.md and governance response below | READY | **Security / Governance** | Not an OS sandbox or a security certification. |
 | Product Innovation & Market Fit — 20% | Verified capability transfer addresses repeated manual reimplementation and risky copy/paste reuse | Project story and demo | READY | **Inspiration / What it does** | No unsupported capability breadth. |
 | Monetization & Fiscal Design — 15% | Current one-time product economics and planned recurring Team/Enterprise architecture | Fiscal architecture below | READY | **Monetization** | Current and planned models are visibly separated. |
 | UI/UX & Visual Refinement — 15% | Packaged desktop UI, hosted explorer, four real product images, and safe no-install judge path | Hosted judge experience and media list | READY | **Gallery / Try it out** | Images are real packaged-build captures. |
-| Keynote Pitch & Demo Completeness — 10% | The 3:20 visual keynote follows Find → Fit → Prove and shows real verification and provenance | YouTube demo | READY | **Video** | Captioned visual presentation with no narration or audio. |
+| Keynote Pitch & Demo Completeness — 10% | The 4:32 live demo follows Find → Fit → Prove in the real app: harvest, Laboratory composition to COMPOSITION VERIFIED, deterministic refusal, transplant verification, and CURRENT → STALE evidence | https://youtu.be/9c-u03Tj62Y | READY | **Video** | Captioned; no narration or audio. |
 | Rule 3 build-window eligibility | Event start July 15, earliest reachable commit September 7, GitHub repository created September 9, and zero pre-window commits found | `docs/GALUXIUM-BUILD-EVIDENCE.md` | READY | **Build provenance note** | Git dates evidence activity; they do not prove when the idea was conceived. Project records indicate no prior hackathon submission. |
 | Final Devpost submission | Finished draft requires final review and submission by the user | Devpost draft | USER ACTION REQUIRED | **Submit project** | Do not click until the user approves the saved draft. |
 
@@ -112,7 +113,7 @@ The public GitHub repository is a security-reviewed publication mirror of the su
 - Local revision-bound Capability Memory and a machine-enforced Data Boundary with source-egress custody records.
 - A public, static judge experience made from sanitized real workflow evidence.
 - A security-reviewed public source mirror and a tested downloadable Apple Silicon desktop build.
-- The historical 3:20 demo remains available while the separate 0.6.0 video is produced from the accepted build.
+- The final 4:32 demo is a live capture of the accepted 0.6 build; earlier recordings remain available as historical references.
 
 #### What we learned
 
@@ -123,6 +124,35 @@ We also learned that local-first execution is a practical product decision for s
 #### What's next for GRAFT
 
 Next steps include broader capability contracts, more destination architectures, stronger optional isolation, broader compatibility profiles, and richer policy controls. A team capability registry could add shared manifests, evidence history, and governance. Enterprise work could add SSO, private deployment, retention controls, and organization-wide policy. These are roadmap directions; they are not features claimed in the submitted build.
+
+#### Planned benchmark: raw repository access versus GRAFT (roadmap, not run)
+
+This is a planned, protected evaluation. It has not been run, it is not part of the submitted build, and nothing here claims that GRAFT outperforms raw repository access.
+
+The evaluation compares two arms. Both use the same frontier coding agent, the same target request and the same destination.
+
+- **Arm A: raw repository.** The agent receives the target request, the source repository and the destination repository.
+- **Arm B: GRAFT.** The agent receives the same target request and destination, plus GRAFT Capability Memory, the Capability Genome, the Compatibility Atlas, the Blueprint (AGENTS.md handoff), and CUF verification evidence.
+
+Planned measures:
+- transplant success
+- behavioural equivalence to the source contract
+- incorrect reuse decisions
+- rejection of incompatible hosts
+- false-compatible and false-incompatible decisions
+- regressions in the destination
+- attempts and steps
+- wall-clock time
+- model and token usage, and estimated model cost
+- strength of the resulting verification
+- destination mutation before a correct refusal
+- reproducibility across repeated runs
+
+The benchmark cases and expected answers will be held back from publication so they cannot leak into model training or tuning.
+
+**Motivation.** Miao, J., Davis, J. R., Zhang, Y., Pritchard, J. K. & Zou, J. "Reimagining research papers as interactive and reliable AI agents." *Nature*, published 16 September 2026, https://doi.org/10.1038/s41586-026-11044-y. That work presents Paper2Agent, which turns published research papers into interactive AI agents. It reports comparisons against a baseline of Claude Code with direct access to the same code repository.
+
+Paper2Agent is not GRAFT. It addresses a different problem, did not evaluate GRAFT, and its results do not show that GRAFT works. Its published direct-repository baseline motivates this planned experiment: testing whether GRAFT's validated capability abstraction gives a comparable advantage over raw repository access for cross-project software transplantation. GRAFT has not yet run this comparison.
 
 ## Executive briefing
 
@@ -222,12 +252,12 @@ Do not add AI model-provider tags: the submitted deterministic workflow does not
 
 ## Video field
 
-- URL: https://youtu.be/mIaXLjbHsIA
-- Title: **GRAFT — Find it. Fit it. Prove it. | Galuxium Nexus V2 Demo**
-- Duration: 3:20
-- Format: 1920×1080, H.264, 30 fps
-- Presentation: captioned visual product demonstration; no audio track, synthetic narration, or music
-- Visibility: unlisted and accessible to anyone with the URL without login
+- URL: https://youtu.be/9c-u03Tj62Y
+- Title: **GRAFT 0.6 — Galuxium Nexus V2 Demo**
+- Duration: 4:32
+- Format: 1920×1080, H.264 High, 30 fps, no audio track
+- Content: 92.6% genuine screen recording of the accepted packaged GRAFT 0.6 app being operated with real input; sped-up segments and two replayed evidence stills are labelled on screen
+- Visibility: unlisted and viewable by anyone with the URL, without signing in
 
 ### Concise pitch text
 

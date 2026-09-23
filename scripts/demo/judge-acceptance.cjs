@@ -27,7 +27,9 @@ app.whenReady().then(async () => {
     check((await evaluate('document.body.innerText')).includes('hosted presentation / replay'), 'replay disclosure');
     check(await evaluate("document.querySelector('a[href*=\"GRAFT-0.6.0-galuxium-arm64.dmg\"]') !== null"), '0.6 download link');
     check(await evaluate("document.querySelector('a[href=\"https://github.com/Ledgercorp/GRAFT-Galuxium\"]') !== null"), 'public source link');
-    check(await evaluate("document.querySelector('a[href=\"https://youtu.be/Oli6UA4X6Lg\"]')?.textContent.includes('GRAFT 0.6.0 Demo') === true"), 'new 0.6 video link');
+    check(await evaluate("[...document.querySelectorAll('a[href=\"https://youtu.be/9c-u03Tj62Y\"]')].some((a) => a.textContent.includes('GRAFT 0.6 live demo'))"), 'final 0.6 live demo link');
+    check(await evaluate("[...document.querySelectorAll('a[href=\"https://youtu.be/mIaXLjbHsIA\"],a[href=\"https://youtu.be/Oli6UA4X6Lg\"]')].every((a) => a.textContent.includes('historical'))"), 'earlier demos labelled historical');
+    for (const term of ['Capability Genome', 'Compatibility Atlas', 'Laboratory', 'CUF verification', 'INCOMPATIBLE', 'STALE', 'Data Boundary', 'not another coding agent', 'Implemented', 'Proposed']) check((await evaluate('document.body.innerText')).includes(term), `overview: ${term}`);
     await evaluate("document.querySelector('a[href=\"#demo\"]').click()");
     check((await evaluate('location.hash')) === '#demo', 'landing to demo');
     check((await evaluate("document.querySelector('#panel').innerText")).includes('Source verification'), 'source discovery and verification');

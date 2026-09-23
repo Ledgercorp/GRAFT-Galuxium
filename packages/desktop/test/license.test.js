@@ -213,7 +213,9 @@ test('the signing gate refuses a non-HTTPS, malformed, or credentialed licenseAp
   assert.throws(() => assertPublicBuildConfig({ ...good, provider: 'deterministic-fixture' }));
 });
 
-test('the private-beta product configuration: invite-only, purchasing disabled, HTTPS TEST service; otherwise a complete public-build profile', () => {
+// The private-beta profile is intentionally withheld from the public repository (see README, Public repository scope).
+const privateBetaProfile = new URL('../config/product.private-beta.json', import.meta.url);
+test('the private-beta product configuration: invite-only, purchasing disabled, HTTPS TEST service; otherwise a complete public-build profile', { skip: !fs.existsSync(privateBetaProfile) && 'private-beta configuration is not published' }, () => {
   const profile = JSON.parse(fs.readFileSync(new URL('../config/product.private-beta.json', import.meta.url), 'utf8'));
   assert.equal(profile.purchaseUrl, null, 'private beta testers are not asked to pay');
   assert.equal(profile.inviteOnly, true);

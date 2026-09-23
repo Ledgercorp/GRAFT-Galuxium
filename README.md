@@ -2,17 +2,154 @@
 
 **Find it. Fit it. Prove it.**
 
-GRAFT is an agent-independent software capability reuse and verification layer. It remembers proven capability locally, checks whether it fits a destination, defines the adaptation and evidence requirements, and verifies the resulting transplant.
+GRAFT is an agent-independent software capability reuse and verification layer. It finds working capabilities in software you already built, verifies them in their source, decides whether they fit a destination, applies them in isolation, and proves the result with evidence bound to the exact revision.
 
-GRAFT is a local developer tool with a macOS desktop application, a browser workspace and a CLI. The 0.6.0 release adds a deterministic Compatibility Preview with COMPATIBLE, ADAPTABLE and INCOMPATIBLE outcomes, local revision-bound Capability Memory, an explicit Data Boundary with custody evidence, portable AGENTS.md handoff export, and typed verification evidence. It does not require an AI provider, account, or hosted service.
+- **Live demo (4:32, the packaged app operated in real time):** [GRAFT 0.6 live demo](https://youtu.be/9c-u03Tj62Y)
+- **Hosted judge experience:** <https://judge-topaz.vercel.app>
+- **Download (macOS Apple Silicon):** [GRAFT-0.6.0-galuxium-arm64.dmg](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg), `167,317,360` bytes, SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`. It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
+- **Earlier recordings (historical):** [earlier 0.6 walkthrough](https://youtu.be/Oli6UA4X6Lg) · [0.5.0 demo](https://youtu.be/mIaXLjbHsIA)
 
-## Hosted judge experience
+## The problem
 
-The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only replay of a real, sanitized fixture workflow. It lets judges inspect source verification, local Capability Memory, deterministic compatibility states and refusal, a portable Blueprint handoff, Data Boundary custody events, typed destination evidence, and provenance without uploading a repository or executing code remotely. Repository-sensitive execution remains local. See [docs/GALUXIUM-JUDGE-EXPERIENCE.md](docs/GALUXIUM-JUDGE-EXPERIENCE.md) for the evidence boundary and reproduction steps.
+AI coding agents can generate code, but reusing a capability across real repositories still requires a developer to establish:
 
-Download the accepted [GRAFT 0.6.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg) (`167,317,360` bytes; SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for installation steps, bounded judge-access behavior, and verified source revision.
+- what an existing implementation actually does;
+- whether its evidence is trustworthy;
+- whether it fits the destination;
+- what adaptation is necessary;
+- whether the transplanted behaviour still works afterwards.
 
-Watch the [GRAFT 0.6.0 Galuxium demo](https://youtu.be/Oli6UA4X6Lg) for the packaged Find → Fit → Prove workflow. The [0.5.0 demo](https://youtu.be/mIaXLjbHsIA) remains available as a historical reference.
+GRAFT turns software capability reuse into a verifiable engineering process. **GRAFT is not another coding agent.** GRAFT owns the capability knowledge, compatibility reasoning, evidence and verification. Claude, Codex and other coding agents can act as interchangeable reasoning or execution layers, for example by following a Blueprint. GRAFT does not depend on any model vendor, and the demonstrated workflow uses no AI provider.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Source repositories] --> B[Discover and verified harvest]
+  B --> C[Capability Memory]
+  C --> D[Capability Genome]
+  D --> E[Compatibility Preview and Compatibility Atlas]
+  E -->|INCOMPATIBLE| R[Deterministic refusal: nothing written]
+  E -->|COMPATIBLE or ADAPTABLE| F[Blueprint AGENTS.md / Laboratory plan]
+  F --> G[Transplant or composition in an isolated git worktree]
+  G --> H[CUF verification]
+  H --> I[Revision-bound evidence and tamper-evident proofs]
+  I --> J[Laboratory ledger: CURRENT or STALE]
+  K[Data Boundary] -. custody records for optional agent egress .-> L[Capability custody ledger]
+```
+
+GRAFT runs on your machine as a Node.js CLI, a local browser workspace (bound to `127.0.0.1`) and an Electron desktop app. The package layout:
+
+| Package | Contents |
+| --- | --- |
+| `packages/core` | Discovery, harvest, manifests, the engine (Genome, graph, IR, verification contract, Atlas), planning, emitters, apply, verification, Laboratory, Data Boundary |
+| `packages/cli` | The `graft` command |
+| `packages/web` | The local workspace server and client, plus the static judge site in `packages/web/judge` |
+| `packages/desktop` | The Electron shell and packaging |
+| `packages/cuf-kernel` | The vendored CUF proof kernel (see `packages/cuf-kernel/PROVENANCE.json`) |
+| `packages/proof-adapter` | The adapter between GRAFT runs and the CUF kernel, and portable proof files |
+| `packages/licensing` | The licensing and purchase service |
+| `fixtures/`, `bench/` | The bundled demo projects and the public benchmark harness |
+
+## Find
+
+- **Authorised workspace.** GRAFT scans only folders you add. **Choose software folder** authorises a root and indexes the projects, repositories and capabilities inside it.
+- **Discovery with evidence.** Search is deterministic. **Why GRAFT thinks this** lists the exact signals and files behind every detection.
+- **Verified harvest.** Harvesting runs the source project, after explicit trust approval, and executes the capability's acceptance cases over HTTP, or against the library artifact. It banks the capability only if every required case passes. Hosted sign-in is verified against a deterministic stand-in identity provider, never a live one.
+- **Capability Memory.** Verified records are stored locally and bound to the source revision and content. Nothing is uploaded.
+
+## Fit
+
+- **Compatibility Preview.** Before any write, GRAFT classifies a destination as **COMPATIBLE**, **ADAPTABLE** (it can proceed only with the listed adaptation or an explicit conflict resolution) or **INCOMPATIBLE**.
+- **Deterministic refusal.** An INCOMPATIBLE plan is refused before adaptation or execution: Apply is disabled and the API refuses with no mutation.
+- **Blueprint.** A deterministic `AGENTS.md` handoff that states the objective, provenance, required constraints and verification for a compatible coding agent.
+- **Laboratory.** Composes capabilities under explicit dependency, conflict and evidence checks (see below).
+
+## Prove
+
+- **Verification.** Each capability's own contract runs against the running destination: required behavioural cases, counterfactuals, and host-preservation checks where applicable. Optional witnesses (for example, session durability across a restart) are reported separately and never counted as required passes.
+- **Revision binding.** A verdict belongs to one destination revision. In the Laboratory ledger a record is **CURRENT** only at that revision; a later commit makes it **STALE**.
+- **Receipts, proofs and provenance.** Transplants write a recovery receipt. Proofs are tamper-evident files whose integrity is checked separately from the verdict, and they can be exported and verified offline (`graft proof verify`). Provenance traces source revision → destination revision → proof identifiers.
+
+## Laboratory
+
+The Laboratory composes capabilities under explicit compatibility and evidence constraints and verifies the resulting composition. It is not autonomous software generation.
+
+1. A blueprint lists goals.
+2. GRAFT offers banked capabilities for each goal, with their evidence, dependencies and conflicts.
+3. The assembly plan names the host and every ordered step. An unsupported host is Blocked before anything is created.
+4. Assembly creates a new local application with no remote. It adds each capability in an isolated worktree and verifies it with its own contract. It re-verifies earlier capabilities after later ones are added, then checks that the host still behaves as before.
+5. **COMPOSITION VERIFIED** is reported only when every capability passes on one final revision. There is no combined score.
+6. **Finalize** fast-forwards your project only after re-checking; nothing is pushed.
+
+## Capability Memory
+
+Capability Memory is local and private by default, under `GRAFT_HOME` (default `~/.graft`). Each record is bound to the source revision it was verified at, so evidence always refers to an exact state of the source.
+
+## Capability Genome
+
+The Genome is the structured internal representation of a harvested capability. It is derived deterministically from the capability package and nothing else, so it can be rebuilt and checked at any time. It covers entrypoints, inputs, outputs, side effects, dependencies, data, runtime assumptions, security properties, and the contract that proves it. Each part traces back to a manifest section. The genome ID hashes behavioural content only, so timestamps and paths never change it.
+
+## Compatibility Atlas
+
+The Atlas is the local record of what GRAFT observes across attempts:
+- the source and destination architecture fingerprints;
+- the adaptations attempted;
+- the outcome and verification result;
+- the evidence digests that tie each entry to its proof.
+
+It informs a plan's risk notes, but never changes a compatibility check or a verdict. Compatibility decisions themselves are deterministic rules over the Host Model.
+
+The public `bench/` harness measures planning quality. A separate protected perturbation benchmark, whose answer keys are withheld (see *Public repository scope*), guards against tuning to known answers.
+
+## Blueprint
+
+The **Export AGENTS.md handoff** action (`plan/agents-export`) writes a deterministic AGENTS.md into the destination's isolated worktree. It never overwrites an existing file; if one exists, it writes an alternate file with merge guidance instead. The handoff states what an agent must do, what it must not change, and how the result will be verified.
+
+## CUF verification
+
+`packages/cuf-kernel` is the vendored CUF proof kernel: compiled output of CUF at a recorded commit, with one documented specifier rewrite. It is authoritative for:
+- each case's PASS, FAIL or INCONCLUSIVE verdict, from the declared expectations and the observations;
+- aggregating those into the run verdict (FAIL outranks INCONCLUSIVE outranks PASS);
+- evidence normalisation;
+- the proof root.
+
+`packages/proof-adapter` is the only module that speaks both vocabularies. GRAFT owns the contracts, the drivers and the observations.
+
+## Data Boundary
+
+GRAFT is local and private by default. Before any optional external provider operation:
+- the request is classified into a data class: `NONE`, `METADATA`, `STRUCTURE`, `SOURCE_EXCERPT` or `GENERATED_DERIVATIVE`;
+- a policy decides ALLOW or DENY;
+- a custody record stores the decision, the policy and an input fingerprint in `capability-custody.json`.
+
+Custody records never retain raw prompts, source excerpts or credentials, and secret-like content is denied.
+
+## Local state (no hosted database)
+
+GRAFT uses local files rather than a database. Under `GRAFT_HOME`:
+
+| Path | Contents |
+| --- | --- |
+| `registry.json` | Registered projects |
+| `organ-bank/<slug>.graft/` | Capability packages: manifest, capability contract, source verification, provenance, engine artifacts |
+| `capability-memory.json`, `workspace-index.json` | Capability Memory and the workspace index |
+| `atlas/` | Compatibility Atlas entries |
+| `laboratory/` | Blueprints, plans, executions and the `assemblies/` ledger |
+| `proofs/` | Tamper-evident proof files, named by digest |
+| `capability-custody.json` | The Data Boundary custody ledger |
+| `worktrees/` | Isolated transplant and assembly worktrees |
+
+Writes use locks and atomic replacement; recovery is described below.
+
+## Security and privacy
+
+- Local-first: repository-sensitive discovery, adaptation and verification run on your machine. The hosted judge site is a static, sanitized replay with no executor or upload endpoint.
+- An explicit Data Boundary applies before any external provider operation.
+- Capability packages record configuration names only, never values.
+- Incompatible or unsafe plans are refused before any write.
+- Provenance and revision-bound proofs make every claim auditable.
+- Verification executes project code with your permissions and is not a sandbox; see [SECURITY.md](SECURITY.md).
 
 ## Quick start
 
@@ -69,14 +206,12 @@ Use a committed, clean destination repository. Review the plan first. If routes 
 
 ## Supported shapes
 
-| Capability / destination | Support |
+| Area | GRAFT 0.6 support |
 | --- | --- |
-| Email/password auth, scrypt, opaque cookie sessions | Harvest and transplant |
-| ESM app with handlers returning `{ status, body, headers }` | `esm-return-response` emitter |
-| ESM Express app with direct top-level `app.get/post/...` and `app.listen` | `express-req-res` emitter; exercised against Express 5.2.1 |
-| CommonJS source using `node:http` / `req, res` | Source discovery and verification |
-| File uploads | Discovery only |
-| CommonJS Express destination, mounted routers, dynamic routes, framework-managed startup | Refused for automatic transplant |
+| Capabilities | Hosted sign-in (session auth backed by an identity provider) as a service; email/password session auth (scrypt, opaque cookie sessions) as a service; feature flags as a library (SwivelJS-style adaptation) |
+| Destinations | A new bare `node:http` application (the Laboratory target); custom ESM `node:http` hosts; direct-route ESM Express (`express-req-res`, exercised against Express 5.2.1) for session-auth transplants |
+| Experimental | Express ESM hosts for hosted sign-in; the repair loop; compatibility learning across your own transplants |
+| Not yet | CommonJS destinations; non-Node stacks, Next.js, NestJS, Fastify, Koa; other capability kinds; Windows and Intel Macs; capabilities that need a live third-party provider to verify |
 
 The Express profile supports one default Express import, one application, direct static routes, and inline/body-parser middleware. GRAFT preserves surrounding middleware and trailing 404 handling. Unsupported wiring is reported before writes. Generated files are new implementations of the manifest contract, not copied source files.
 
@@ -123,6 +258,49 @@ npm run test:web       # dashboard security and real workflow tests
 npm run test:package   # pack, install elsewhere, run the CLI demo and browser server
 npm run release:check  # all of the above
 npm audit --omit=dev
+node scripts/demo/judge-preview.mjs    # serve the static judge site at http://127.0.0.1:4173
+node scripts/demo/judge-evidence.mjs   # regenerate the judge evidence from the bundled fixtures
+node scripts/publication-check.mjs     # public-repository exclusion, secret and personal-path scan
 ```
 
 CI is configured for Node 20, 22, and 24 on Linux and macOS. Local test results do not establish that the remote matrix has passed. [RELEASE.md](RELEASE.md) records the exact local release assessment, and [docs/GALUXIUM-BUILD-EVIDENCE.md](docs/GALUXIUM-BUILD-EVIDENCE.md) records the factual Galuxium build-window evidence.
+
+## Limitations
+
+- Capability kinds and hosts are deliberately narrow; see *Supported shapes*.
+- Optional agent features (design help, plan explanation, agent-interpreted search) need a provider you configure; keys are read from the environment and never stored.
+- Hosted sign-in is verified against a deterministic stand-in identity provider, not a live one.
+- The accepted macOS build is ad-hoc signed and not notarized. In the packaged judge build, **Create sample workspace** fails because the fixtures are not bundled; use your own folders, or run from source, where it works.
+- The protected compatibility benchmark's answer keys are intentionally not published.
+
+## Public repository scope
+
+**Product source (public).** All code needed to inspect, build, test and run the submitted GRAFT 0.6 product and judge site:
+- the packages listed above;
+- the fixtures, the public benchmark harness and tests;
+- the build, packaging and evidence-generation scripts.
+
+**Intentionally excluded (private operational or protected material).** None of these is needed to build or run the submitted judge application:
+- The protected compatibility perturbation benchmark (`bench/compatibility-perturbations.mjs`) and its test, which contain answer keys.
+- Private-beta distribution configuration and tooling (`packages/desktop/config/product.private-beta.json`, `scripts/private-beta.mjs`).
+- Licensing-service deployment configuration (`packages/licensing/fly.toml`, `packages/licensing/DEPLOY.md`).
+- Credentials of any kind.
+- Internal development checkpoints and handoff notes.
+
+`scripts/publication-check.mjs` enforces these exclusions and scans for secrets and personal paths.
+
+## Business model
+
+**Implemented.** A $49 USD one-time GRAFT desktop licence sold through Stripe Checkout, with Stripe as merchant of record (`packages/licensing`). The desktop app never holds a Stripe secret.
+
+**Proposed, not built.** No revenue, customers or usage figures are claimed.
+- **Free / Local:** local capability reuse, Capability Memory and the core compatibility and verification workflow for individual developers.
+- **Pro:** paid professional workflow features for individuals (proposed pricing).
+- **Team:** a proposed recurring per-seat subscription for shared verified-capability registries, organisational capability distribution, policy, audit retention and team compatibility intelligence.
+- **Enterprise:** a proposed annual contract for private capability infrastructure, identity and access controls, governance, longer audit retention, and managed deployment and support.
+
+Recurring revenue would come from the shared, governed registry. Its value grows with every verified capability a team adds.
+
+## Future benchmark work
+
+A planned, protected comparison of raw repository access against GRAFT's validated capability abstraction is described in [docs/GALUXIUM-FINAL-SUBMISSION.md](docs/GALUXIUM-FINAL-SUBMISSION.md#planned-benchmark-raw-repository-access-versus-graft-roadmap-not-run). It has not been run, and no result is claimed.
