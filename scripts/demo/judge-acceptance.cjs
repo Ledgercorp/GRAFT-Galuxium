@@ -27,7 +27,7 @@ app.whenReady().then(async () => {
     check((await evaluate('document.body.innerText')).includes('hosted presentation / replay'), 'replay disclosure');
     check(await evaluate("document.querySelector('a[href*=\"GRAFT-0.6.0-galuxium-arm64.dmg\"]') !== null"), '0.6 download link');
     check(await evaluate("document.querySelector('a[href=\"https://github.com/Ledgercorp/GRAFT-Galuxium\"]') !== null"), 'public source link');
-    check((await evaluate('document.body.innerText')).includes('Previous Product Demo (0.5.0)'), 'previous video labelled');
+    check(await evaluate("document.querySelector('a[href=\"https://youtu.be/Oli6UA4X6Lg\"]')?.textContent.includes('GRAFT 0.6.0 Demo') === true"), 'new 0.6 video link');
     await evaluate("document.querySelector('a[href=\"#demo\"]').click()");
     check((await evaluate('location.hash')) === '#demo', 'landing to demo');
     check((await evaluate("document.querySelector('#panel').innerText")).includes('Source verification'), 'source discovery and verification');

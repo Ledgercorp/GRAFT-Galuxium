@@ -12,7 +12,7 @@ The [Galuxium judge experience](https://judge-topaz.vercel.app) is a read-only r
 
 Download the accepted [GRAFT 0.6.0 Galuxium judge build for macOS Apple Silicon](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg) (`167,317,360` bytes; SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`). It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md) for installation steps, bounded judge-access behavior, and verified source revision.
 
-The [previous 3:20 Galuxium product demonstration](https://youtu.be/mIaXLjbHsIA) shows the 0.5.0 workflow. A new 0.6.0 demonstration will replace this current video link after production and privacy review.
+Watch the [GRAFT 0.6.0 Galuxium demo](https://youtu.be/Oli6UA4X6Lg) for the packaged Find → Fit → Prove workflow. The [0.5.0 demo](https://youtu.be/mIaXLjbHsIA) remains available as a historical reference.
 
 ## Quick start
 
