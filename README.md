@@ -2,12 +2,13 @@
 
 **Find it. Fit it. Prove it.**
 
-AI made generating software dramatically cheaper. It did not make proving software correct dramatically cheaper. GRAFT is the trust, reuse and verification layer for AI-assisted software development: it finds capabilities you already built, determines whether they fit another project, and verifies the resulting behaviour with evidence bound to the exact revision. It can refuse unsafe reuse, and its evidence expires when the code changes.
+AI made writing software cheap. Trusting it is still expensive. GRAFT is the trust, reuse and verification layer for AI-assisted software development: it finds capabilities you already built, determines whether they fit another project, and verifies the resulting behaviour with evidence bound to the exact revision. It can refuse unsafe reuse, and its evidence expires when the code changes.
 
 - **Live demo (4:32, the packaged app operated in real time):** [GRAFT 0.6 live demo](https://youtu.be/9c-u03Tj62Y)
 - **Hosted judge experience:** <https://judge-topaz.vercel.app>
 - **Download (macOS Apple Silicon):** [GRAFT-0.6.0-galuxium-arm64.dmg](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg), `167,317,360` bytes, SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`. It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
 - **Judging evidence, claim by claim:** [docs/GALUXIUM-RUBRIC-EVIDENCE.md](docs/GALUXIUM-RUBRIC-EVIDENCE.md)
+- **Build provenance and repository history:** [docs/GALUXIUM-BUILD-EVIDENCE.md](docs/GALUXIUM-BUILD-EVIDENCE.md)
 - **Five-minute path:** in the demo, COMPOSITION VERIFIED is at 1:51, the same evidence turning STALE after a later commit at 2:26, and an INCOMPATIBLE refusal with Apply disabled at 3:32. The judge site's evidence explorer shows the recorded run step by step.
 - **Earlier recordings (historical):** [earlier 0.6 walkthrough](https://youtu.be/Oli6UA4X6Lg) · [0.5.0 demo](https://youtu.be/mIaXLjbHsIA)
 
@@ -120,7 +121,7 @@ The **Export AGENTS.md handoff** action (`plan/agents-export`) writes a determin
 
 ## CUF verification
 
-`packages/cuf-kernel` is the vendored CUF proof kernel: compiled output of CUF at a recorded commit, with one documented specifier rewrite. It is authoritative for:
+`packages/cuf-kernel` is the vendored CUF proof kernel: compiled output of CUF, the developer's own proprietary verification project, at a recorded commit, with one documented specifier rewrite. CUF's TypeScript source is not in this repository; see [docs/GALUXIUM-BUILD-EVIDENCE.md](docs/GALUXIUM-BUILD-EVIDENCE.md). It is authoritative for:
 - each case's PASS, FAIL or INCONCLUSIVE verdict, from the declared expectations and the observations;
 - aggregating those into the run verdict (FAIL outranks INCONCLUSIVE outranks PASS);
 - evidence normalisation;
@@ -288,7 +289,8 @@ CI is configured for Node 20, 22, and 24 on Linux and macOS. Local test results 
 ## Public repository scope
 
 **Product source (public).** All code needed to inspect, build, test and run the submitted GRAFT 0.6 product and judge site:
-- the packages listed above;
+- the GRAFT packages listed above, in source form;
+- the vendored verification kernel (`packages/cuf-kernel`), as compiled JavaScript with its provenance record;
 - the fixtures, the public benchmark harness and tests;
 - the build, packaging and evidence-generation scripts.
 
@@ -300,6 +302,8 @@ CI is configured for Node 20, 22, and 24 on Linux and macOS. Local test results 
 - Internal development checkpoints and handoff notes.
 
 `scripts/publication-check.mjs` enforces these exclusions and scans for secrets and personal paths.
+
+This repository has a short, curated publication history. The incremental development history is private and is summarised in [docs/GALUXIUM-BUILD-EVIDENCE.md](docs/GALUXIUM-BUILD-EVIDENCE.md).
 
 ## Business model
 

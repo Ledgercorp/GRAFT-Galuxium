@@ -1,6 +1,6 @@
 # GRAFT hosted judge experience
 
-The organizer's hosting approval is quoted in `GALUXIUM-AUDIT.md`. It permits a public sample-data experience while repository-sensitive execution remains local. It does not waive the public repository, video, or build-window requirements.
+The organizer's hosting approval was given to the developer in writing; that correspondence is not published here. It permits a public sample-data experience while repository-sensitive execution remains local. It does not waive the public repository, video, or build-window requirements.
 
 ## Architecture and ownership
 
