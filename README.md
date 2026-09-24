@@ -8,6 +8,7 @@ AI made generating software dramatically cheaper. It did not make proving softwa
 - **Hosted judge experience:** <https://judge-topaz.vercel.app>
 - **Download (macOS Apple Silicon):** [GRAFT-0.6.0-galuxium-arm64.dmg](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg), `167,317,360` bytes, SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`. It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
 - **Judging evidence, claim by claim:** [docs/GALUXIUM-RUBRIC-EVIDENCE.md](docs/GALUXIUM-RUBRIC-EVIDENCE.md)
+- **Five-minute path:** in the demo, COMPOSITION VERIFIED is at 1:51, the same evidence turning STALE after a later commit at 2:26, and an INCOMPATIBLE refusal with Apply disabled at 3:32. The judge site's evidence explorer shows the recorded run step by step.
 - **Earlier recordings (historical):** [earlier 0.6 walkthrough](https://youtu.be/Oli6UA4X6Lg) · [0.5.0 demo](https://youtu.be/mIaXLjbHsIA)
 
 ## The problem
@@ -31,6 +32,26 @@ GRAFT turns software capability reuse into a verifiable engineering process.
 **Two ideas a judge should take away.**
 - *Deterministic refusal.* Most AI development systems optimise for completing the requested action. GRAFT returns COMPATIBLE, ADAPTABLE or INCOMPATIBLE before anything is written, and refuses reuse when compatibility or evidence requirements cannot be met.
 - *Evidence that expires.* A green checkmark is not permanent evidence. Every verdict is bound to one revision: CURRENT at that revision, STALE after the next commit. Change the code and GRAFT demands new proof.
+
+## Find
+
+- **Authorised workspace.** GRAFT scans only folders you add. **Choose software folder** authorises a root and indexes the projects, repositories and capabilities inside it.
+- **Discovery with evidence.** Search is deterministic. **Why GRAFT thinks this** lists the exact signals and files behind every detection.
+- **Verified harvest.** Harvesting runs the source project, after explicit trust approval, and executes the capability's acceptance cases over HTTP, or against the library artifact. It saves the capability only if every required case passes. Hosted sign-in is verified against a deterministic stand-in identity provider, never a live one.
+- **Capability Memory.** Verified records are stored locally and bound to the source revision and content. Nothing is uploaded.
+
+## Fit
+
+- **Compatibility Preview.** Before any write, GRAFT classifies a destination as **COMPATIBLE**, **ADAPTABLE** (it can proceed only with the listed adaptation or an explicit conflict resolution) or **INCOMPATIBLE**.
+- **Deterministic refusal.** An INCOMPATIBLE plan is refused before adaptation or execution: Apply is disabled and the API refuses with no mutation.
+- **Blueprint.** A deterministic `AGENTS.md` handoff that states the objective, provenance, required constraints and verification for a compatible coding agent.
+- **Laboratory.** Composes capabilities under explicit dependency, conflict and evidence checks (see below).
+
+## Prove
+
+- **Verification.** Each capability's own contract runs against the running destination: required behavioural cases, counterfactuals, and host-preservation checks where applicable. Optional witnesses (for example, session durability across a restart) are reported separately and never counted as required passes.
+- **Revision binding.** A verdict belongs to one destination revision. In the Laboratory ledger a record is **CURRENT** only at that revision; a later commit makes it **STALE**.
+- **Receipts, proofs and provenance.** Transplants write a recovery receipt. Proofs are tamper-evident files whose integrity is checked separately from the verdict, and they can be exported and verified offline (`graft proof verify`). Provenance traces source revision → destination revision → proof identifiers.
 
 ## Architecture
 
@@ -62,32 +83,12 @@ GRAFT runs on your machine as a Node.js CLI, a local browser workspace (bound to
 | `packages/licensing` | The licensing and purchase service |
 | `fixtures/`, `bench/` | The bundled demo projects and the public benchmark harness |
 
-## Find
-
-- **Authorised workspace.** GRAFT scans only folders you add. **Choose software folder** authorises a root and indexes the projects, repositories and capabilities inside it.
-- **Discovery with evidence.** Search is deterministic. **Why GRAFT thinks this** lists the exact signals and files behind every detection.
-- **Verified harvest.** Harvesting runs the source project, after explicit trust approval, and executes the capability's acceptance cases over HTTP, or against the library artifact. It banks the capability only if every required case passes. Hosted sign-in is verified against a deterministic stand-in identity provider, never a live one.
-- **Capability Memory.** Verified records are stored locally and bound to the source revision and content. Nothing is uploaded.
-
-## Fit
-
-- **Compatibility Preview.** Before any write, GRAFT classifies a destination as **COMPATIBLE**, **ADAPTABLE** (it can proceed only with the listed adaptation or an explicit conflict resolution) or **INCOMPATIBLE**.
-- **Deterministic refusal.** An INCOMPATIBLE plan is refused before adaptation or execution: Apply is disabled and the API refuses with no mutation.
-- **Blueprint.** A deterministic `AGENTS.md` handoff that states the objective, provenance, required constraints and verification for a compatible coding agent.
-- **Laboratory.** Composes capabilities under explicit dependency, conflict and evidence checks (see below).
-
-## Prove
-
-- **Verification.** Each capability's own contract runs against the running destination: required behavioural cases, counterfactuals, and host-preservation checks where applicable. Optional witnesses (for example, session durability across a restart) are reported separately and never counted as required passes.
-- **Revision binding.** A verdict belongs to one destination revision. In the Laboratory ledger a record is **CURRENT** only at that revision; a later commit makes it **STALE**.
-- **Receipts, proofs and provenance.** Transplants write a recovery receipt. Proofs are tamper-evident files whose integrity is checked separately from the verdict, and they can be exported and verified offline (`graft proof verify`). Provenance traces source revision → destination revision → proof identifiers.
-
 ## Laboratory
 
 The Laboratory composes capabilities under explicit compatibility and evidence constraints and verifies the resulting composition. It is not autonomous software generation.
 
 1. A blueprint lists goals.
-2. GRAFT offers banked capabilities for each goal, with their evidence, dependencies and conflicts.
+2. GRAFT offers saved capabilities for each goal, with their evidence, dependencies and conflicts.
 3. The assembly plan names the host and every ordered step. An unsupported host is Blocked before anything is created.
 4. Assembly creates a new local application with no remote. It adds each capability in an isolated worktree and verifies it with its own contract. It re-verifies earlier capabilities after later ones are added, then checks that the host still behaves as before.
 5. **COMPOSITION VERIFIED** is reported only when every capability passes on one final revision. There is no combined score.
@@ -193,7 +194,7 @@ The dashboard binds only to `127.0.0.1`; it is a local application, not a cloud 
 
 An Apple Silicon macOS build packages the same workspace and engine with a bundled Node runtime, so it needs no Node installation of its own. Build it with `npm run desktop:make` and verify a build with `npm run desktop:package -- --fixture` followed by `npm run desktop:accept`. Normal production candidates remain unconfigured and fail closed. The separately named Galuxium judge build uses the existing deterministic local demo provider and needs no external activation; it does not alter production or private-beta licensing. See [docs/DESKTOP-0.5.md](docs/DESKTOP-0.5.md) and [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
 
-GRAFT's purchase and licensing backend lives in `packages/licensing`: one product at $49 one-time through Stripe Checkout, with Stripe as merchant of record (Stripe Managed Payments handles tax). The desktop app never holds a Stripe secret; payment is verified server-side. See [packages/licensing/README.md](packages/licensing/README.md).
+GRAFT's purchase and licensing backend lives in `packages/licensing`: one product at $49 one-time through Stripe Checkout, with Stripe as merchant of record (Stripe Managed Payments handles tax). The desktop app never holds a Stripe secret; payment is verified server-side. The Galuxium Stripe configuration is test mode and not yet live end to end. See [packages/licensing/README.md](packages/licensing/README.md).
 
 ## Use your projects
 
@@ -302,7 +303,9 @@ CI is configured for Node 20, 22, and 24 on Linux and macOS. Local test results 
 
 ## Business model
 
-**Implemented.** A $49 USD one-time GRAFT desktop licence sold through Stripe Checkout, with Stripe as merchant of record (`packages/licensing`). The desktop app never holds a Stripe secret.
+**Implemented and tested.** The licensing service (`packages/licensing`) for a $49 USD one-time desktop licence: Stripe Checkout with Managed Payments requested (Stripe acts as merchant of record), a `/buy` redirect to a Stripe Payment Link, signature-verified webhook fulfilment, and server-side purchase verification that re-fetches the Checkout Session before any licence is issued. A success redirect alone never issues a licence. Covered by 110 automated tests against a Stripe fake. The desktop app never holds a Stripe secret.
+
+**Configured, not live end to end.** A Stripe test-mode product, price, Payment Link and webhook exist. The licensing service that fulfils them is not yet deployed, and no purchase has been completed through it. Sandbox transactions are test data, not revenue.
 
 **Proposed, not built.** No revenue, customers or usage figures are claimed.
 - **Free / Local:** local capability reuse, Capability Memory and the core compatibility and verification workflow for individual developers.

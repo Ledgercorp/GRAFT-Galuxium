@@ -221,7 +221,7 @@ The public judge site runs no arbitrary repository code and accepts no repositor
 
 ### Current product economics — implemented
 
-GRAFT's current commercial model is a **$49 USD one-time desktop licence** sold through Stripe Checkout. The implemented catalogue uses a single one-time price and rejects recurring price configuration. Stripe Managed Payments is the recorded merchant-of-record architecture. The submission does not claim that recurring subscriptions, paying customers, or live commercial traction have been proven.
+GRAFT's current commercial model is a **$49 USD one-time desktop licence** through Stripe Checkout, implemented and tested against a Stripe fake; the Stripe configuration is test mode and no purchase has been completed end to end. The implemented catalogue uses a single one-time price and rejects recurring price configuration. Stripe Managed Payments is the recorded merchant-of-record architecture. The submission does not claim that recurring subscriptions, paying customers, or live commercial traction have been proven.
 
 ### Planned recurring commercial architecture — roadmap
 
