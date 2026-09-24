@@ -32,7 +32,7 @@
 
 ## Earlier recordings (historical)
 
-- **Earlier 0.6 walkthrough:** https://youtu.be/Oli6UA4X6Lg, 3:47, a screenshot-based walkthrough of the same 0.6 build. SHA-256 `0b4ba4d7d7e471c9e4fa054275dc20c0c73ad272aa5524d1263ae3c60ea64049`.
+- **Earlier 0.6 walkthrough:** no longer publicly available; 3:47, a screenshot-based walkthrough of the same 0.6 build. SHA-256 `0b4ba4d7d7e471c9e4fa054275dc20c0c73ad272aa5524d1263ae3c60ea64049`.
 - **0.5.0 demo:** https://youtu.be/mIaXLjbHsIA, 3:20, product source commit `8b7343c1390203ecf011bf0b8ff2df8fcff26a20`. SHA-256 `06fb4fd7c8b4b5e00a986ae1a3c60e6320dcd7f1cce17c088934207546641c12`.
 
 ## Public description (for the video page)

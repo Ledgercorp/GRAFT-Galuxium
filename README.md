@@ -10,7 +10,6 @@ AI made writing software cheap. Trusting it is still expensive. GRAFT is the tru
 - **Judging evidence, claim by claim:** [docs/GALUXIUM-RUBRIC-EVIDENCE.md](docs/GALUXIUM-RUBRIC-EVIDENCE.md)
 - **Build provenance and repository history:** [docs/GALUXIUM-BUILD-EVIDENCE.md](docs/GALUXIUM-BUILD-EVIDENCE.md)
 - **Five-minute path:** in the demo, COMPOSITION VERIFIED is at 1:51, the same evidence turning STALE after a later commit at 2:26, and an INCOMPATIBLE refusal with Apply disabled at 3:32. The judge site's evidence explorer shows the recorded run step by step.
-- **Earlier recordings (historical):** [earlier 0.6 walkthrough](https://youtu.be/Oli6UA4X6Lg) · [0.5.0 demo](https://youtu.be/mIaXLjbHsIA)
 
 ## The problem
 

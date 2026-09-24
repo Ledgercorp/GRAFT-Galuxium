@@ -77,7 +77,7 @@ test('static public directory has only reviewed assets and no executable backend
   const finalDemo = /href="([^"]+)">Watch the GRAFT 0\.6 live demo/.exec(read('index.html'))?.[1];
   assert.equal(finalDemo, 'https://youtu.be/9c-u03Tj62Y', 'final 0.6 live demo link');
   assert.match(finalDemo, /^https:\/\//, 'final demo is a public HTTPS URL');
-  assert.match(read('index.html'), /0\.5\.0 demo \(historical\)/);
+  for (const page of ['index.html', 'docs.html']) assert.doesNotMatch(read(page), /Oli6UA4X6Lg|mIaXLjbHsIA/, `${page} directs judges only to the final demo`);
   assert.doesNotMatch(read('index.html'), /Previous Product Demo/);
   for (const term of ['Capability Memory', 'Capability Genome', 'Compatibility Atlas', 'Compatibility Preview', 'Blueprint', 'Laboratory', 'CUF verification', 'STALE', 'Data Boundary', 'not another coding agent', 'Proposed']) assert.ok(read('index.html').includes(term), term);
   assert.doesNotMatch(read('app.js'), /innerHTML|eval\(|localhost|127\.0\.0\.1|\/api\//);

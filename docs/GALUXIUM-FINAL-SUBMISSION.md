@@ -1,6 +1,8 @@
 # GRAFT Galuxium Nexus V2 Final Submission
 
-Prepared September 22, 2026 from the verified GRAFT 0.6.0 release and public submission surfaces. This is the field-by-field copy package for the Devpost draft. The final Devpost submission remains a separate user action.
+> **Historical preparation record.** This is the September 22, 2026 copy package prepared before the final submission. Its field copy and draft-status notes are superseded by the submitted Devpost project page. Current evidence: [README](../README.md), [GALUXIUM-RUBRIC-EVIDENCE.md](GALUXIUM-RUBRIC-EVIDENCE.md) and [GALUXIUM-BUILD-EVIDENCE.md](GALUXIUM-BUILD-EVIDENCE.md).
+
+Prepared September 22, 2026 from the verified GRAFT 0.6.0 release and public submission surfaces. This is the field-by-field copy package for the Devpost draft.
 
 ## Submission identity
 
@@ -12,7 +14,6 @@ Prepared September 22, 2026 from the verified GRAFT 0.6.0 release and public sub
 | Hosted judge experience | https://judge-topaz.vercel.app |
 | Public source | https://github.com/Ledgercorp/GRAFT-Galuxium |
 | Final product demo (GRAFT 0.6, 4:32 live capture) | https://youtu.be/9c-u03Tj62Y |
-| Earlier recordings (historical) | https://youtu.be/Oli6UA4X6Lg (earlier 0.6 walkthrough) · https://youtu.be/mIaXLjbHsIA (0.5.0) |
 | Product download | https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg |
 
 ## Devpost draft state
