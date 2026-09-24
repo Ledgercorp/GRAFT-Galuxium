@@ -1,0 +1,15 @@
+{
+  "provider": "graft-stripe-managed-payments",
+  "storeId": 1,
+  "productId": 1,
+  "variantIds": [
+    1
+  ],
+  "licenseApiBase": "https://graft-licensing-galuxium.fly.dev",
+  "purchaseUrl": "https://graft-licensing-galuxium.fly.dev/buy",
+  "downloadUrl": "https://github.com/Ledgercorp/GRAFT-Galuxium/releases/download/v0.6.0-commercial-test/GRAFT-0.6.0-arm64.dmg",
+  "offlineDays": 30,
+  "testBuild": false,
+  "inviteOnly": false,
+  "supportEmail": null
+}

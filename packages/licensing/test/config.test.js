@@ -63,3 +63,11 @@ test('live mode never defaults GRAFT_PUBLIC_URL to loopback: it must be explicit
   assert.equal(ok.publicUrl, 'https://licensing.graft.example');
   assert.doesNotThrow(() => requireStripe(ok));
 });
+
+test('STRIPE_PAYMENT_LINK_URL is optional, must be HTTPS on buy.stripe.com, and does not change what is required', () => {
+  assert.equal(loadConfig(base).paymentLinkUrl, null);
+  assert.equal(loadConfig({ ...base, STRIPE_PAYMENT_LINK_URL: 'https://buy.stripe.com/test_abc/' }).paymentLinkUrl, 'https://buy.stripe.com/test_abc');
+  assert.throws(() => loadConfig({ ...base, STRIPE_PAYMENT_LINK_URL: 'https://example.com/pay' }), /buy\.stripe\.com/);
+  assert.throws(() => loadConfig({ ...base, STRIPE_PAYMENT_LINK_URL: 'http://buy.stripe.com/test_abc' }), /HTTPS/);
+  assert.throws(() => requireStripe(loadConfig({ ...base, STRIPE_SECRET_KEY: undefined, STRIPE_PAYMENT_LINK_URL: 'https://buy.stripe.com/test_abc' })), /STRIPE_SECRET_KEY/);
+});

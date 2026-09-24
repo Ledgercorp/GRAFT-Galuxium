@@ -86,6 +86,24 @@ test('buy creates a checkout session and redirects to Stripe', async (t) => {
   assert.match(res.headers.get('location'), /checkout\.stripe\.com\/pay\/cs_/);
 });
 
+test('buy redirects to a configured Stripe Payment Link without creating a session; verification is unchanged', async (t) => {
+  const env = await boot({ config: { paymentLinkUrl: 'https://buy.stripe.com/test_link' } }); t.after(env.close);
+  const res = await fetch(`${env.base}/buy`, { redirect: 'manual' });
+  assert.equal(res.status, 303);
+  assert.equal(res.headers.get('location'), 'https://buy.stripe.com/test_link');
+  assert.equal(env.stripe._sessions.size, 0, 'no Checkout Session is created server-side');
+  // A session completed through the Payment Link is still verified from canonical Stripe state.
+  const session = await env.stripe.createCheckoutSession({ successUrl: 'x' });
+  const page = await fetch(`${env.base}/success?session_id=${session.id}`);
+  assert.equal(page.status, 200); assert.match(await page.text(), /GRAFT-/);
+  const wrong = await env.stripe.createCheckoutSession({ successUrl: 'x', priceId: 'price_other' });
+  const refused = await fetch(`${env.base}/success?session_id=${wrong.id}`);
+  assert.equal(refused.status, 200); const refusedText = await refused.text();
+  assert.match(refusedText, /could not confirm this GRAFT purchase/); assert.doesNotMatch(refusedText, /GRAFT-[A-Z0-9]/);
+  assert.ok(await env.registry.getBySession(session.id), 'the genuine purchase was issued');
+  assert.equal(await env.registry.getBySession(wrong.id), null, 'the non-GRAFT session issued nothing');
+});
+
 test('a signed completed-checkout webhook issues exactly one license; the success page reveals it', async (t) => {
   const env = await boot(); t.after(env.close);
   const session = await env.stripe.createCheckoutSession({ successUrl: 'x' });

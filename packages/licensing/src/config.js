@@ -30,6 +30,13 @@ export function url(value, field, { allowInsecureLoopback = false } = {}) {
   return parsed.toString().replace(/\/$/, '');
 }
 
+// A Payment Link must be a Stripe-hosted HTTPS page; anything else would send buyers off Stripe.
+function paymentLink(value) {
+  const normalized = url(value, 'STRIPE_PAYMENT_LINK_URL');
+  if (normalized && new URL(normalized).hostname !== 'buy.stripe.com') throw new Error('STRIPE_PAYMENT_LINK_URL must be a buy.stripe.com Payment Link.');
+  return normalized;
+}
+
 function capTolerance(seconds) {
   // A wide replay window weakens webhook security; hold it to at most 10 minutes.
   if (seconds > 600) throw new Error('STRIPE_SIGNATURE_TOLERANCE_SEC must be 600 seconds or less.');
@@ -53,6 +60,10 @@ export function loadConfig(env = process.env) {
     secretKey,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET || null,
     priceId: env.STRIPE_PRICE_ID || null,
+    // Optional Stripe Payment Link: when set, /buy redirects buyers to it and Stripe creates the
+    // Checkout Session. Verification is unchanged (the session is still re-fetched and checked
+    // against the configured price), so the secret key only needs read access.
+    paymentLinkUrl: paymentLink(env.STRIPE_PAYMENT_LINK_URL),
     // Product identity triple the desktop license service checks. These are GRAFT's
     // own identifiers, not Stripe object ids; they must match packages/desktop/config/product.json.
     product: {

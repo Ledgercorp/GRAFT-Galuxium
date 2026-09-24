@@ -235,6 +235,10 @@ export function createLicensingServer({ config, stripe, registry, mailer = null,
 
     if (req.method === 'GET' && path === '/buy') {
       if (!config.priceId) throw new HttpError(503, 'Purchasing is not configured.');
+      // A configured Stripe Payment Link creates the Checkout Session on Stripe's side; its
+      // completed session reaches /success and /webhook exactly like a server-created one and
+      // is verified the same way before any licence is issued.
+      if (config.paymentLinkUrl) return redirect(res, config.paymentLinkUrl);
       // Belt and braces with config.js: a live session must never carry loopback return URLs.
       if (config.mode === 'live' && (!config.publicUrl || isLoopback(config.publicUrl))) throw new HttpError(503, 'Purchasing is not configured for live mode.');
       const session = await stripe.createCheckoutSession({
