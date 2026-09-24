@@ -1,5 +1,7 @@
 # GRAFT hosted judge experience
 
+> **Historical build record.** This document records the judge experience as first built and validated on September 20, 2026, before the GRAFT 0.6 release. Its video, deployment and assertion counts are from that time. Current: the 4:32 GRAFT 0.6 demo (https://youtu.be/9c-u03Tj62Y) and the evidence in [GALUXIUM-RUBRIC-EVIDENCE.md](GALUXIUM-RUBRIC-EVIDENCE.md).
+
 The organizer's hosting approval was given to the developer in writing; that correspondence is not published here. It permits a public sample-data experience while repository-sensitive execution remains local. It does not waive the public repository, video, or build-window requirements.
 
 ## Architecture and ownership

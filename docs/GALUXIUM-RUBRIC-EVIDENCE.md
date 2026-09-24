@@ -11,7 +11,7 @@ Public surfaces: [judge site](https://judge-topaz.vercel.app) · [source](https:
 | Agent-independent reuse and verification pipeline: Find → Fit → Prove | `packages/core/src` (workspace, harvest, engine, plan, apply, verify, laboratory) | Source; README "Architecture" with diagram | README; judge site "How GRAFT 0.6 works" |
 | Capabilities are verified in their source before reuse | `packages/core/src/harvest`, `verify` | Demo 0:25–0:43 (8/8 and 13/13 required cases) | Demo; judge "Find it" view |
 | Compatibility decided before any write | `packages/core/src/plan` (Compatibility Preview over a Host Model) | Demo 2:57 (ADAPTABLE), 3:32 (INCOMPATIBLE) | Demo; judge "Fit it" view |
-| Composition of several capabilities with re-verification on one final revision | `packages/core/src/laboratory` | Demo 1:03–2:14, COMPOSITION VERIFIED at 1:51 | Demo |
+| Composition of several capabilities with re-verification on one final revision | `packages/core/src/laboratory` | Demo 1:04–2:14, COMPOSITION VERIFIED at 1:51 | Demo |
 | Verification delegated to a proof kernel with a single adapter | `packages/cuf-kernel` (vendored, `PROVENANCE.json`), `packages/proof-adapter` | Source | README "CUF verification" |
 | Scales by design: all repository-sensitive work is local; the hosted surface is static | Local-first workspace bound to `127.0.0.1`; static judge site; small licensing service | `packages/web/src/server.js`, `packages/web/judge/` | README "Security and privacy" |
 | Test coverage | Fresh clone of public `main` (`ebbbeb6`) on a clean machine, 2026-09-23: `npm test` 584 tests, 532 passed, 0 failed, 52 skipped (tests that need private dogfood material or the unpublished private-beta profile). Licensing 110 of 110. Desktop 54 tests: 53 passed, 1 skipped (private-beta profile). Judge-site browser acceptance: 43 assertions locally, 40 against production (the 3 local-only checks corrupt the evidence file). | `npm test`, `node --test packages/licensing/test/*.test.js`, `scripts/demo/judge-acceptance.cjs` | Reproducible from the repository |
@@ -80,14 +80,14 @@ No revenue, customers, conversion or usage figures exist or are claimed. With Ma
 | One workflow, seven sections, plain-language states | Desktop/web workspace: Workspace, Discover, Projects, Organ bank, Transplant, Laboratory, Activity | `packages/web/public/app.js` | Demo throughout |
 | Refusals and staleness are first-class UI states, not errors | INCOMPATIBLE, Blocked, STALE, Intact badges with reasons | `app.js` | Demo 1:18, 2:26, 3:32 |
 | Keyboard and mobile judge site | Skip link, `aria-current` stages, focus management; responsive layout | `packages/web/judge/app.js`, `style.css`; acceptance suite covers keyboard and 390px mobile | https://judge-topaz.vercel.app |
-| Real captures, not mock-ups | All gallery images are frames from the live demo of the packaged build | Demo video | Devpost gallery |
+| Real captures, not mock-ups | Gallery images 1–11 are frames from the live demo of the packaged build; 12 and 13 are diagrams | Demo video | Devpost gallery |
 
 ## Keynote Pitch & Demo Completeness (10%)
 
 | Claim | Evidence |
 |---|---|
 | 4:32 demo of the accepted build being operated | https://youtu.be/9c-u03Tj62Y; 92.6% genuine screen recording, sped-up segments labelled on screen |
-| Find → Fit → Prove shown in order | FIND 0:10, FIT · LABORATORY 1:03, FIT · TRANSPLANT 2:52, PROVE 3:19 |
+| Find → Fit → Prove shown in order | FIND 0:10, FIT · LABORATORY 1:04, FIT · TRANSPLANT 2:52, PROVE 3:19 |
 | Refusal shown | Blocked host 1:18; INCOMPATIBLE with Apply disabled 3:32–3:37 |
 | COMPOSITION VERIFIED shown | 1:51–2:03, revision `71b6dcc607ed` |
 | CURRENT → STALE shown | CURRENT 2:03; STALE after a later commit 2:26; proofs still Intact 2:31; plan STALE 2:41 |

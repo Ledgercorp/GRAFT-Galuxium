@@ -38,4 +38,4 @@ npm run desktop:accept
 
 The Galuxium judge build is a bounded local-demo build for macOS Apple Silicon.
 It is ad-hoc signed, not notarized, and requires no activation for judge access.
-The accepted source is `8b90365a3de2fa12cdab8c88e3d19522c60c70be`. Packaged acceptance passed `116/116` assertions. The immutable public artifact is `GRAFT-0.6.0-galuxium-arm64.dmg` (`167,317,360` bytes; SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`). The 0.5.0 download and video remain available as historical assets; the existing video is identified as the previous product demo until the 0.6.0 video is published.
+The accepted source is `8b90365a3de2fa12cdab8c88e3d19522c60c70be`. Packaged acceptance passed `116/116` assertions. The immutable public artifact is `GRAFT-0.6.0-galuxium-arm64.dmg` (`167,317,360` bytes; SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`). The 0.5.0 download remains available as a historical asset. The GRAFT 0.6 demo is published at https://youtu.be/9c-u03Tj62Y.
