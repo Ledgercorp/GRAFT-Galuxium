@@ -2,16 +2,19 @@
 
 **Find it. Fit it. Prove it.**
 
-GRAFT is an agent-independent software capability reuse and verification layer. It finds working capabilities in software you already built, verifies them in their source, decides whether they fit a destination, applies them in isolation, and proves the result with evidence bound to the exact revision.
+AI made generating software dramatically cheaper. It did not make proving software correct dramatically cheaper. GRAFT is the trust, reuse and verification layer for AI-assisted software development: it finds capabilities you already built, determines whether they fit another project, and verifies the resulting behaviour with evidence bound to the exact revision. It can refuse unsafe reuse, and its evidence expires when the code changes.
 
 - **Live demo (4:32, the packaged app operated in real time):** [GRAFT 0.6 live demo](https://youtu.be/9c-u03Tj62Y)
 - **Hosted judge experience:** <https://judge-topaz.vercel.app>
 - **Download (macOS Apple Silicon):** [GRAFT-0.6.0-galuxium-arm64.dmg](https://graft-beta-downloads.fly.storage.tigris.dev/GRAFT-0.6.0-galuxium-arm64.dmg), `167,317,360` bytes, SHA-256 `bb6e0e05501b595da72096f3a9d57de53c040495fed45117f0bf868876923ee1`. It is ad-hoc signed and not Apple notarized; see [docs/GALUXIUM-ARTIFACT.md](docs/GALUXIUM-ARTIFACT.md).
+- **Judging evidence, claim by claim:** [docs/GALUXIUM-RUBRIC-EVIDENCE.md](docs/GALUXIUM-RUBRIC-EVIDENCE.md)
 - **Earlier recordings (historical):** [earlier 0.6 walkthrough](https://youtu.be/Oli6UA4X6Lg) · [0.5.0 demo](https://youtu.be/mIaXLjbHsIA)
 
 ## The problem
 
-AI coding agents can generate code, but reusing a capability across real repositories still requires a developer to establish:
+Generation has outrun verification. In the [2025 Stack Overflow Developer Survey](https://survey.stackoverflow.co/2025/ai), 84% of respondents use or plan to use AI tools in their development process, yet more developers distrust the accuracy of AI output (46%) than trust it (33%); the most common frustration, at 66%, is "AI solutions that are almost right, but not quite", and 45.2% say debugging AI-generated code is more time-consuming.
+
+Reusing a capability across real repositories still requires a developer to establish:
 
 - what an existing implementation actually does;
 - whether its evidence is trustworthy;
@@ -19,7 +22,15 @@ AI coding agents can generate code, but reusing a capability across real reposit
 - what adaptation is necessary;
 - whether the transplanted behaviour still works afterwards.
 
-GRAFT turns software capability reuse into a verifiable engineering process. **GRAFT is not another coding agent.** GRAFT owns the capability knowledge, compatibility reasoning, evidence and verification. Claude, Codex and other coding agents can act as interchangeable reasoning or execution layers, for example by following a Blueprint. GRAFT does not depend on any model vendor, and the demonstrated workflow uses no AI provider.
+GRAFT turns software capability reuse into a verifiable engineering process.
+
+**One market, two entry points.** AI has expanded the population able to build substantial software: AI-first builders create applications rapidly with coding agents, while their tooling for trustworthy reuse and verification has lagged behind their tooling for generation. GRAFT gives that workflow memory, compatibility analysis, deterministic refusal, provenance and verification. Professional developers and engineering organisations have the same problem at greater scale: years of working implementations and internal patterns are rediscovered or rebuilt across repositories. GRAFT turns that accumulated work into reusable, evidence-backed capabilities. More people, more agents and more generated software mean a greater need for trustworthy reuse and verification.
+
+**GRAFT is not another coding agent.** Coding agents primarily create or modify software. GRAFT discovers existing capabilities, determines whether they can safely fit another environment, and produces revision-bound evidence that the result works. It is complementary infrastructure for agentic development: Claude, Codex and other agents can act as interchangeable reasoning or execution layers, for example by following a Blueprint, while capability knowledge, compatibility reasoning, provenance and verification evidence stay with GRAFT. GRAFT does not depend on any model vendor, and the demonstrated workflow uses no AI provider. No comparison against any coding agent is claimed.
+
+**Two ideas a judge should take away.**
+- *Deterministic refusal.* Most AI development systems optimise for completing the requested action. GRAFT returns COMPATIBLE, ADAPTABLE or INCOMPATIBLE before anything is written, and refuses reuse when compatibility or evidence requirements cannot be met.
+- *Evidence that expires.* A green checkmark is not permanent evidence. Every verdict is bound to one revision: CURRENT at that revision, STALE after the next commit. Change the code and GRAFT demands new proof.
 
 ## Architecture
 
